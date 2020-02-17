@@ -5,82 +5,101 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    //VARS FLOAT
+    //References - Managers
+    SpawnManager _spawnManager;         //<SpawnManager> ref 
+    private UIManager _uiManager;       //<UIManager> ref
+
+    //References - Audio
+    [SerializeField]
+    private AudioSource _audioSource;   //<AudioSource> ref
+    [SerializeField]
+    private AudioClip _laserSoundClip;  //<AudioClip> ref of Laser sound  //Set @Inspector 
+    private SoundFX _explosionSoundFX;  //<SoundFX> ref of explosion sound
+
+    //VARS - Gameplay
+    [SerializeField]
+    public int _score = 0;              //Score
+
+    //VARS - Player Ship
+    //Health - Lives
+    [SerializeField]
+    private int _lives = 3;             //Player lives
+    
+    //Movement
     [SerializeField]
     private float _speed = 3.5f;        //Movement speed
+    //[SerializeField]
+    //private int _direction;             //Direction of x, y input axis
 
+    //Sprites
     [SerializeField]
-    private GameObject _laserPrefab;    //Set @Inspector
+    public Sprite _spr_shipTurn;                        //Current sprite passed to render
+    [SerializeField]
+    public Sprite[] _spr_ShipTurnLeft = new Sprite[9];  //Array of turn left sprites
+    [SerializeField]
+    public Sprite[] _spr_ShipTurnRight = new Sprite[9]; //Array of turn right sprites
 
+    //Thruster - Colors
+    private Color _colorThruster_On;
+    private Color _colorSpeedBoost_On;
+    private Color _colorBoostAndThruster_On;
+
+    //Weapons - Laser
+    [SerializeField]
+    private GameObject _laserPrefab;    //Set @Inspector    
     [SerializeField]
     private float _fireRate = 0.5f;     //Fire Rate   *Override @Inspector
     private float _canFire = 0.0f;      //Var to hold new time to cross-check fire rate
     [SerializeField]
-    private int _ammoLaser = 15;
-    [SerializeField]
-    private int _lives = 3;             //Player lives
+    private int _ammoLaser = 15; 
 
-    SpawnManager _spawnManager;         //<SpawnManager> ref
-
-    //Triple Shot
+    //Weapons - Triple Shot
     [SerializeField]
     private bool _isTripleShotActive = false;           //3shot active toggle
     [SerializeField]
     private GameObject _tripleShotPrefab;               //Set @Inspector
     [SerializeField]
     private float _coolDownTimeTripleShot = 5.0f;       //3shot cool down time
-    //Speed Boost
+
+    //PowerUp - Speed Boost
     [SerializeField]
     private bool _isSpeedBoostActive = false;           //SpeedBoost active toggle
-    //[SerializeField]
-    //private float _powerupSpeed = 8.5f;                 //Player-Speed when SpeedBoost active ~~WAS MULTIPLIER~~
-    [SerializeField]
-    private float _powerupSpeedX = 1.0f;                 //Player-Speed when SpeedBoost active ~~MULTIPLIER~~
-    [SerializeField]
-    private float _shiftSpeedX = 1.0f;                 //Player-Speed when LShift or MouseButton[2] active ~~MULTIPLIER~~
     [SerializeField]
     private float _coolDownSpeedBoost = 5.0f;           //SpeedBoost cooldown time
-    //Shield
+
+    //Speed Modifiers
     [SerializeField]
-    private GameObject _shieldPrefab;       //Set @Inspector
+    private float _powerupSpeedX = 1.0f;                //Player-Speed when SpeedBoost active ~~MULTIPLIER~~
+    [SerializeField]
+    private float _shiftSpeedX = 1.0f;                  //Player-Speed when LShift or MouseButton[2] active ~~MULTIPLIER~~
+
+    //PowerUp - Shield
+    [SerializeField]
+    private GameObject _shieldPrefab;                   //Set @Inspector
     [SerializeField]
     private bool _isShieldActive = false;               //Shield active toggle
     [SerializeField]
-    private int _shieldEnergy = 0; //Energy of shield
-    public GameObject shieldColor;
-    [SerializeField]
     private float _coolDownShieldPowerup = 5.0f;        //Shield cooldown time
     [SerializeField]
-    private GameObject _shieldVisualsPrefab;//Set @Inspector
+    private GameObject _shieldVisualsPrefab;            //Set @Inspector
+    [SerializeField]
+    private int _shieldEnergy = 0;                      //Energy of shield
+    public GameObject shieldColor;                      //Color of shield 
+
+    //Engines for damage
     [SerializeField]
     private GameObject _rightEngine;        //Set @Inspector
     [SerializeField]
     private GameObject _leftEngine;         //Set @Inspector
     [SerializeField]
     private GameObject[] _bothEngines = new GameObject[1];  //Array of engines for random   //Set @Inspector
-    //[SerializeField]
-    //private enum Turn { None, Left, Right };
-    [SerializeField]
-    private int _direction;
-    [SerializeField]
-    public Sprite _spr_shipTurn;
-    [SerializeField]
-    public Sprite[] _spr_ShipTurnLeft = new Sprite[9];
-    [SerializeField]
-    public Sprite[] _spr_ShipTurnRight = new Sprite[9];
-    [SerializeField]
-    public int _score = 0;              //Score
 
-    private UIManager _uiManager;       //<UIManager> ref
 
-    //var to store audio clip
-    //private AudioSource _audioLaser;  //*NOT IN USE
-    [SerializeField]
-    private AudioClip _laserSoundClip;  //<AudioClip> ref of Laser sound  //Set @Inspector 
-    [SerializeField]
-    private AudioSource _audioSource;   //<AudioSource> ref
 
-    private SoundFX _explosionSoundFX;  //<SoundFX> ref of explosion sound
+
+
+
+
 
     private Animator _animPlayer;
 
@@ -91,15 +110,18 @@ public class Player : MonoBehaviour
     //Set engines to array
     void Start()
     {
-        //take the current position = new position (0, 0, 0)
-        //transform.position = new Vector3(0f, -2.12f, 0f);                               //Player spawn pos
+        //transform.position = new Vector3(0f, -2.12f, 0f);                             //Player spawn pos, Override-@inpepctor
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();  //<SpawnManager> ref
         _uiManager = GameObject.Find("Canvas").GetComponent<UIManager>();               //<UIManager> ref
         _audioSource = GetComponent<AudioSource>();                                     //<AudioSource> ref
         _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();   //<SoundFX> ref
         _spr_shipTurn = GetComponent<SpriteRenderer>().sprite = _spr_ShipTurnLeft[0];
+
         shieldColor = new GameObject();
         shieldColor = GameObject.Find("Shield");
+        _colorBoostAndThruster_On = new Color(0.3f, 0f, 1.0f, 0.86f);                   //Purple blend
+        _colorThruster_On = new Color(1.0f, 0f, 1.0f, 0.86f);                           //Red blend
+        _colorSpeedBoost_On = new Color(0.5f, 1.0f, 0f, 0.86f);                         //Green blend
 
         _animPlayer = GetComponent<Animator>();
         //NULL CHECKS: 
@@ -158,18 +180,34 @@ public class Player : MonoBehaviour
             }   //Player shoot attempt too early
         }
 
+        //****ToDo: make thruster colors a variable
+        //on key press add thruster speed multiplier
+        //change thruster color depending on amount of thruster
+
+        //Colorize thrusters on button press
         if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetButtonDown("Fire3"))
-        {            
-            GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(1.0f, 0f, 1.0f, 0.86f);
-            _shiftSpeedX = 1.75f;
-            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(0.3f, 0f, 1.0f, 0.86f); }
+        {
+            //Thruster Activated
+            GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
+            Debug.Log("Thruster");
+            _shiftSpeedX = 1.75f;       //Set thruster speed modifier
+
+            //Thruster Actived plus Speed Boost
+            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
         }
 
+        //Colorize thurster to default color on button Release
+        //Always true if these buttons not pushed
+        //No thruster activated (normal or speed boost active only)
         if (Input.GetKeyUp(KeyCode.LeftShift) && Input.GetButtonUp("Fire3"))
         {
-            if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; }
-            _shiftSpeedX = 1.0f;
-        }
+            //Normal Speed and Thruster Color
+            if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; Debug.Log("Thruster released."); }
+            _shiftSpeedX = 1.0f;        //Set thruster speed modifier to default
+
+            //Speed Boost active only, boost thruster color
+            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorSpeedBoost_On; Debug.Log("Speed Boost Only"); }
+        } 
     }
 
     public void TurnLeft(float turnAmt)
@@ -263,10 +301,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    float GetArea()
-    {
-        return 10f;
-    }
+ 
     //SHOOT
     void FireLaser()
     {
