@@ -263,6 +263,10 @@ public class Player : MonoBehaviour
         }
     }
 
+    float GetArea()
+    {
+        return 10f;
+    }
     //SHOOT
     void FireLaser()
     {
