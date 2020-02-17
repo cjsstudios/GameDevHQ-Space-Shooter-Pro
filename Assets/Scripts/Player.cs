@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Player : MonoBehaviour
 {
     //VARS FLOAT
@@ -14,7 +15,8 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float _fireRate = 0.5f;     //Fire Rate   *Override @Inspector
     private float _canFire = 0.0f;      //Var to hold new time to cross-check fire rate
-
+    [SerializeField]
+    private int _ammoLaser = 15;
     [SerializeField]
     private int _lives = 3;             //Player lives
 
@@ -30,26 +32,42 @@ public class Player : MonoBehaviour
     //Speed Boost
     [SerializeField]
     private bool _isSpeedBoostActive = false;           //SpeedBoost active toggle
+    //[SerializeField]
+    //private float _powerupSpeed = 8.5f;                 //Player-Speed when SpeedBoost active ~~WAS MULTIPLIER~~
     [SerializeField]
-    private float _powerupSpeed = 8.5f;                 //Player-Speed when SpeedBoost active ~~WAS MULTIPLIER~~
+    private float _powerupSpeedX = 1.0f;                 //Player-Speed when SpeedBoost active ~~MULTIPLIER~~
+    [SerializeField]
+    private float _shiftSpeedX = 1.0f;                 //Player-Speed when LShift or MouseButton[2] active ~~MULTIPLIER~~
     [SerializeField]
     private float _coolDownSpeedBoost = 5.0f;           //SpeedBoost cooldown time
     //Shield
     [SerializeField]
-    private UnityEngine.GameObject _shieldPrefab;       //Set @Inspector
+    private GameObject _shieldPrefab;       //Set @Inspector
     [SerializeField]
     private bool _isShieldActive = false;               //Shield active toggle
     [SerializeField]
+    private int _shieldEnergy = 0; //Energy of shield
+    public GameObject shieldColor;
+    [SerializeField]
     private float _coolDownShieldPowerup = 5.0f;        //Shield cooldown time
     [SerializeField]
-    private UnityEngine.GameObject _shieldVisualsPrefab;//Set @Inspector
+    private GameObject _shieldVisualsPrefab;//Set @Inspector
     [SerializeField]
-    private UnityEngine.GameObject _rightEngine;        //Set @Inspector
+    private GameObject _rightEngine;        //Set @Inspector
     [SerializeField]
-    private UnityEngine.GameObject _leftEngine;         //Set @Inspector
+    private GameObject _leftEngine;         //Set @Inspector
     [SerializeField]
-    private UnityEngine.GameObject[] _bothEngines = new UnityEngine.GameObject[1];  //Array of engines for random   //Set @Inspector
-
+    private GameObject[] _bothEngines = new GameObject[1];  //Array of engines for random   //Set @Inspector
+    //[SerializeField]
+    //private enum Turn { None, Left, Right };
+    [SerializeField]
+    private int _direction;
+    [SerializeField]
+    public Sprite _spr_shipTurn;
+    [SerializeField]
+    public Sprite[] _spr_ShipTurnLeft = new Sprite[9];
+    [SerializeField]
+    public Sprite[] _spr_ShipTurnRight = new Sprite[9];
     [SerializeField]
     public int _score = 0;              //Score
 
@@ -64,7 +82,7 @@ public class Player : MonoBehaviour
 
     private SoundFX _explosionSoundFX;  //<SoundFX> ref of explosion sound
 
-    
+    private Animator _animPlayer;
 
     //START
     //Move player to start pos
@@ -74,12 +92,16 @@ public class Player : MonoBehaviour
     void Start()
     {
         //take the current position = new position (0, 0, 0)
-        transform.position = new Vector3(0f, -2.12f, 0f);                               //Player spawn pos
+        //transform.position = new Vector3(0f, -2.12f, 0f);                               //Player spawn pos
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();  //<SpawnManager> ref
         _uiManager = GameObject.Find("Canvas").GetComponent<UIManager>();               //<UIManager> ref
         _audioSource = GetComponent<AudioSource>();                                     //<AudioSource> ref
         _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();   //<SoundFX> ref
+        _spr_shipTurn = GetComponent<SpriteRenderer>().sprite = _spr_ShipTurnLeft[0];
+        shieldColor = new GameObject();
+        shieldColor = GameObject.Find("Shield");
 
+        _animPlayer = GetComponent<Animator>();
         //NULL CHECKS: 
         //<SpawnManger>
         if (_spawnManager == null)
@@ -108,29 +130,86 @@ public class Player : MonoBehaviour
         _bothEngines[1] = _leftEngine;  //Set array[1] to left engine
     }
 
+    public void StopAnimation()
+    {
+        _animPlayer.StopPlayback();
+        _animPlayer.applyRootMotion = true;
+        //gameObject.GetComponent<Animator>().StopPlayback();
+        Debug.Log("Animation stopped");
+    }
+
     //UPDATE
     //Calculate player movement
     //Shoot laser on spacebar
     void Update()
     {
         CalculateMovement();
-        
-        if (Input.GetKeyDown(KeyCode.Space))    
-        { 
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
             if (Time.time > _canFire)
             {
                 //Debug.Log("Shoot Time: " + Time.time);
                 //Debug.Log("***Is GameTime " + Time.time + " > " + _canFire + " CanFire Time");
                 FireLaser();
             }
-            else { Debug.Log("TOO EARLY TO SHOOT"); }   //Player shoot attempt too early
+            else {
+                //Debug.Log("TOO EARLY TO SHOOT"); 
+            }   //Player shoot attempt too early
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetButtonDown("Fire3"))
+        {            
+            GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(1.0f, 0f, 1.0f, 0.86f);
+            _shiftSpeedX = 1.75f;
+            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(0.3f, 0f, 1.0f, 0.86f); }
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftShift) && Input.GetButtonUp("Fire3"))
+        {
+            if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; }
+            _shiftSpeedX = 1.0f;
         }
     }
 
+    public void TurnLeft(float turnAmt)
+    {
+        //Set sprite img to turnDegree index
+        int turnDegree = -(int)Mathf.Floor(turnAmt * 10f);
+        if (turnDegree >= _spr_ShipTurnLeft.Length) { turnDegree = _spr_ShipTurnLeft.Length -1; }
+        //Debug.Log("TurnDegree = " + turnDegree + "LeftLength" + (_spr_ShipTurnLeft.Length-1));
+        _spr_shipTurn = _spr_ShipTurnLeft[turnDegree];
+    }
+
+    public void TurnRight(float turnAmt)
+    {
+        //Set sprite img to turnDegree index
+        int turnDegree = (int)Mathf.Floor(turnAmt * 10f);
+        if (turnDegree >= _spr_ShipTurnRight.Length ) { turnDegree = _spr_ShipTurnRight.Length-1; }
+        //Debug.Log("TurnDegree = " + turnDegree + "RightLength" + (_spr_ShipTurnRight.Length-1));
+        _spr_shipTurn = _spr_ShipTurnRight[turnDegree];
+    }
+
+    public void TurnNone()
+    {
+        //
+        //Debug.Log("Ship Not Turning!!!!!!");
+    }
     //MOVEMENT
     void CalculateMovement()
     {
+        
         float horizontalInput = Input.GetAxis("Horizontal");    //Set x-input
+        //if (horizontalInput > 8.0f) { horizontalInput = 7.99f; }
+        //if (horizontalInput < -8.0f) { horizontalInput = -7.99f; }
+        //Sprite change by Axis input (-1)to(1)
+        if (horizontalInput < 0) { TurnLeft(horizontalInput); }
+        else if (horizontalInput > 0) { TurnRight(horizontalInput); }
+        else { TurnNone(); }
+
+        gameObject.GetComponent<SpriteRenderer>().sprite = _spr_shipTurn;
+
+        //Debug.Log("horzInput::: " + horizontalInput);
         float verticalInput = Input.GetAxis("Vertical");        //Set y-input
 
         //Time.deltaTime = per second in Update frame / meters per second
@@ -140,23 +219,29 @@ public class Player : MonoBehaviour
         //transform.Translate(new Vector3(horizontalInput, verticalInput, 0) * _speed * Time.deltaTime);    //**NOT IN USE //Move all directions
         //Another solution (Tutorial)
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
-
+        //*Debug.Log("Ship is moveable!! Direction: " + direction);
         //If SpeedBoost is active then multiply by power-up speed boost..
         //..otherwise speed is normal
+        float _speedModified = _speed * _powerupSpeedX * _shiftSpeedX;
+        //*Debug.Log("Speed: " + _speed + " PowerupSpeedX: " + _powerupSpeedX + " ShiftSpeed" + _shiftSpeedX);
+        //*Debug.Log("Current Speed: " + _speedModified);
+        transform.Translate(direction * _speedModified * Time.deltaTime);   //Multipliers default to 1.0f
+        /*
         if (_isSpeedBoostActive == true)
         {
-            transform.Translate(direction * _powerupSpeed * Time.deltaTime);
+            transform.Translate(direction * _powerupSpeedX * Time.deltaTime);
         }
         else
         {
             transform.Translate(direction * _speed * Time.deltaTime);
         }        
+        /**/
         //only 1 line of code with multiplier, just set multiplier to 1 when off
 
         //Move Horizontal & Verticle with y-clamp
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0f), 0f);   //Clamps the y-cord (Prevent: ship from moving up pass clamp y-cords, up&down)
         //Same As^
-        /* //Move Horizontal & Verticle with y-boundries
+         //Move Horizontal & Verticle with y-boundries
         if (transform.position.y >= 0)
         {
             transform.position = new Vector3(transform.position.x, 0f, 0f);
@@ -165,7 +250,7 @@ public class Player : MonoBehaviour
         {
             transform.position = new Vector3(transform.position.x, -3.8f, 0f);
         }
-        */
+        
 
         //Movement screen wrap
         if (transform.position.x > 11.3f)
@@ -190,11 +275,22 @@ public class Player : MonoBehaviour
         {
             Debug.Log("Triple Laser Shot by Player");
             Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
+            _ammoLaser--;
         }
         else
         {
             Debug.Log("Laser Shot by Player");
-            Instantiate(_laserPrefab, transform.position + new Vector3(0f, 1.0f, 0f), Quaternion.identity);
+            if (_ammoLaser > 0 && _fireRate > 0.0f)
+            {
+                Instantiate(_laserPrefab, transform.position + new Vector3(0f, 1.0f, 0f), Quaternion.identity);
+                _ammoLaser--;
+            }
+            
+            if (_ammoLaser == 0)
+            {
+                Debug.Log("OUT OF AMMO!");
+                StartCoroutine("AmmoLaser_Reload");
+            }
             //Debug.Break();
         }
 
@@ -204,6 +300,24 @@ public class Player : MonoBehaviour
         
     }
 
+    //RELOAD LASER AMMO
+    IEnumerator AmmoLaser_Reload()
+    {
+        if (_ammoLaser < 15)
+        {
+            _fireRate = 0.0f;
+            _ammoLaser++;
+            Debug.Log("RELOADING AMMO (" + _ammoLaser + ")");
+            yield return new WaitForSeconds(15f);
+        }
+        else
+        {
+            Debug.Log("Reloaded!! Lasers Active");
+            _fireRate = 0.5f;
+            
+        }
+
+    }
     //DAMAGE
     //Player damage control
     //No damage if shields, otherwise -1 life
@@ -215,9 +329,20 @@ public class Player : MonoBehaviour
     {
         if (_isShieldActive == true)                //If shield is active...
         {
-            _isShieldActive = false;                //then Set isActive to false
-            _shieldVisualsPrefab.SetActive(false);  //deactivate shield visual prefab
-            return;                                 //EXIT Damage()
+            
+            if (_shieldEnergy <= 1)
+            {
+                _isShieldActive = false;                //then Set isActive to false
+                _shieldEnergy = 0;
+                _shieldVisualsPrefab.SetActive(false);  //deactivate shield visual prefab
+                return;                                 //EXIT Damage()
+            }
+            else if (_shieldEnergy > 1)
+            {
+                _shieldEnergy--;
+                UpdateShieldColor();
+                return;
+            }
         }
 
         _lives -= 1;                                //If no shield, then subtract a life
@@ -286,6 +411,8 @@ public class Player : MonoBehaviour
     public void SpeedBoostActive()
     {
         _isSpeedBoostActive = true;             //Set Active
+        GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(0.5f, 1.0f, 0f, 0.86f);
+        _powerupSpeedX = 2.0f;
         StartCoroutine(SpeedBoostCoolDown());   //Begin cooldown
         //set speed boost is active
         //start coroutine for cool down
@@ -295,6 +422,8 @@ public class Player : MonoBehaviour
     IEnumerator SpeedBoostCoolDown()
     {
         yield return new WaitForSeconds(_coolDownSpeedBoost);
+        GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white;
+        _powerupSpeedX = 1.0f;
         _isSpeedBoostActive = false;            //Set not active //Runs after yield time
 
     }
@@ -304,7 +433,10 @@ public class Player : MonoBehaviour
     public void ShieldPowerupActive()
     {
         _isShieldActive = true;                 //SET toggle check active
+        _shieldEnergy += 1;
+        
         _shieldVisualsPrefab.SetActive(true);   //SET shield prefab active to display shield
+        UpdateShieldColor();
         //enable visualizer
         //start coroutine
     }
@@ -319,7 +451,16 @@ public class Player : MonoBehaviour
         _isShieldActive = false;
     }
     */
-
+    void UpdateShieldColor()
+    {
+        switch (_shieldEnergy)
+        {
+            case 4: shieldColor.GetComponent<SpriteRenderer>().color = Color.white; break;
+            case 3: shieldColor.GetComponent<SpriteRenderer>().color = Color.green; break;
+            case 2: shieldColor.GetComponent<SpriteRenderer>().color = Color.red; break;
+            case 1: shieldColor.GetComponent<SpriteRenderer>().color = Color.magenta; break;
+        }
+    }
     //SCORE: ADD POINTS(int ~points set by call)
     public void AddScore(int points)
     {
