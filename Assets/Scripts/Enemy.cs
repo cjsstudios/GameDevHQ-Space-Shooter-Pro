@@ -67,16 +67,18 @@ public class Enemy : MonoBehaviour
     {
         _fireRate = Random.Range(3.0f, 7.0f);   //Set random fire rate
         _canShoot = Time.time + _fireRate;      //Set (_canShoot) to time plus (_fireRate) = 1 less than fire rete (?)
-        
+
         //Debug.Log("Enemy can shoot time: (" + _canShoot + ") <> Fire Rate: ( " + _fireRate + ")");
-
-        //Instantiate Enemy Laser
-        if (_player)                            //If [Player] exist...then spawn laser  **Prevent: crash when player dies and spawn laser tries to create <Player> ref
+        
+        if (_speedEnemy > 0)  //Prevents dead enemy from shooting that is still in animation
         {
-            Debug.Log("Enemy Laser Shot");
-            GameObject enemyLaser = Instantiate(_laserEnemyPrefab, new Vector3(transform.position.x, transform.position.y - 0.73f, transform.position.z), Quaternion.identity);
+            //Instantiate Enemy Laser
+            if (_player)                            //If [Player] exist...then spawn laser  **Prevent: crash when player dies and spawn laser tries to create <Player> ref
+            {
+                Debug.Log("Enemy Laser Shot");
+                GameObject enemyLaser = Instantiate(_laserEnemyPrefab, new Vector3(transform.position.x, transform.position.y - 0.73f, transform.position.z), Quaternion.identity);
+            }
         }
-
         //enemyLaser.transform.Translate(Vector3.down * 8.0f * Time.deltaTime);
         
     }
