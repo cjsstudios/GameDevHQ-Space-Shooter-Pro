@@ -29,6 +29,7 @@ public class Laser : MonoBehaviour
         {
             Debug.Log("Enemy laser hit player!");
             _player.Damage();                                           //Damage Player
+ //ToDo: Add Camera Shake
             if (this.transform.parent != null)                          //If enemy laser has parent...
             {
                 Destroy(this.transform.parent.gameObject);              //Destroy parent

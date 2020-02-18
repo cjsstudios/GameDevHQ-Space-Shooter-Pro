@@ -199,6 +199,13 @@ public class Player : MonoBehaviour
             }   //Player shoot attempt too early
         }
 
+        //SHOOT SPECIAL WEAPON I
+        if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl) || Input.GetMouseButtonDown(1))
+        {
+            //ToDo: Add special weapon
+            Debug.Log("Aquire a Special Weapon");
+        }
+
         //THRUSTER ACTIVE
             //Colorize thrusters on button press
             //On key press add thruster speed multiplier
@@ -376,9 +383,11 @@ public class Player : MonoBehaviour
     void FireLaser()
     {
         _canFire = Time.time + _fireRate;           //Set new time for fire rate
-        //Debug.Log("Can Fire Time: " + _canFire);
-        //Debug.Log("MathCheck: FireRate = (" + _fireRate + ") <> GameTime(inSec) = " + Time.time + " <> Is FireRate + Time = " + _canFire);
+                                                    //Debug.Log("Can Fire Time: " + _canFire);
+                                                    //Debug.Log("MathCheck: FireRate = (" + _fireRate + ") <> GameTime(inSec) = " + Time.time + " <> Is FireRate + Time = " + _canFire);
 
+        //Set five second timer for secondary fire power
+        //Revert back to laser
         //Shoot triple-shot if active, otherwise shoot default laser
         if (_isTripleShotActive)    
         {
