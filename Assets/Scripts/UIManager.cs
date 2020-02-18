@@ -22,6 +22,10 @@ public class UIManager : MonoBehaviour
 
     [SerializeField]
     private GameManager _gameManager;
+
+    [SerializeField]
+    private Slider _thrusterFuel_UI;  //Thruster fuel UI scaler ref @inspector
+
     //[SerializeField]
     //private bool _canRestart = false; //**NOT IN USE
 
@@ -86,16 +90,15 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(0.75f);
         } 
     }
-    /*
+    /**/
+    public void Update_ThrusterFuel(float fuel)
+    {
+        _thrusterFuel_UI.value = fuel;
+    }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            if (_canRestart == true)
-            {
-                SceneManager.LoadScene("Game")
-            }
-        }
+       
+
     }
-    */
+    
 }

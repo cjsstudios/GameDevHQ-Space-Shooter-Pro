@@ -16,6 +16,9 @@ public class Player : MonoBehaviour
     private AudioClip _laserSoundClip;  //<AudioClip> ref of Laser sound  //Set @Inspector 
     private SoundFX _explosionSoundFX;  //<SoundFX> ref of explosion sound
 
+    //Reference - UI
+   
+
     //VARS - Gameplay
     [SerializeField]
     public int _score = 0;              //Score
@@ -43,6 +46,12 @@ public class Player : MonoBehaviour
     private Color _colorThruster_On;
     private Color _colorSpeedBoost_On;
     private Color _colorBoostAndThruster_On;
+
+    //Thruster - Fuel
+    [SerializeField]
+    private float _thrusterFuel;        //Amount of fuel for thruster
+    [SerializeField]
+    private bool _isRefueling;          //Refuel check, true is true
 
     //Weapons - Laser
     [SerializeField]
@@ -123,6 +132,8 @@ public class Player : MonoBehaviour
         _colorThruster_On = new Color(1.0f, 0f, 1.0f, 0.86f);                           //Red blend
         _colorSpeedBoost_On = new Color(0.5f, 1.0f, 0f, 0.86f);                         //Green blend
 
+
+        _thrusterFuel = 1.0f;
         _animPlayer = GetComponent<Animator>();
         //NULL CHECKS: 
         //<SpawnManger>
@@ -167,6 +178,7 @@ public class Player : MonoBehaviour
     {
         CalculateMovement();
 
+        //SHOOT LASER
         if (Input.GetKeyDown(KeyCode.Space))
         {
             if (Time.time > _canFire)
@@ -180,34 +192,82 @@ public class Player : MonoBehaviour
             }   //Player shoot attempt too early
         }
 
-        //****ToDo: make thruster colors a variable
-        //on key press add thruster speed multiplier
-        //change thruster color depending on amount of thruster
-
-        //Colorize thrusters on button press
-        if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetButtonDown("Fire3"))
+        //THRUSTER ACTIVE
+            //Colorize thrusters on button press
+            //On key press add thruster speed multiplier
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetButton("Fire3"))
         {
-            //Thruster Activated
-            GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
-            Debug.Log("Thruster");
-            _shiftSpeedX = 1.75f;       //Set thruster speed modifier
+            if (!_isRefueling)
+            {
+                //Burn Thrusters
+                //Overwrite vars if no thruster fuel left
+                if (_thrusterFuel > 0 && _isRefueling == false)  //Has Fuel & Not Refueling
+                {
+                    //Thruster Activated
+                    GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
+                    Debug.Log("Thruster");
+                    _shiftSpeedX = 1.75f;       //Set thruster speed modifier
+                    BurnThrusters();                    //Decrease fuel
+                    //Thruster Actived plus Speed Boost
+                    if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+                }
+                else
+                {
+                    _isRefueling = true;                        //Once true then loop is false
+                    Debug.Log("OUT OF FUEL!!! REFUELING...");
+                    ThrusterDeactivated();
+                }
 
-            //Thruster Actived plus Speed Boost
-            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+                //Thruster Actived plus Speed Boost
+                //if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+            }
         }
 
-        //Colorize thurster to default color on button Release
-        //Always true if these buttons not pushed
-        //No thruster activated (normal or speed boost active only)
+        //THRUSTER + SPEED BOOST TOGGLE
+            //to default color on button Release
+            //Always true if these buttons not pushed
+            //No thruster activated (normal or speed boost active only)
         if (Input.GetKeyUp(KeyCode.LeftShift) && Input.GetButtonUp("Fire3"))
         {
             //Normal Speed and Thruster Color
-            if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; Debug.Log("Thruster released."); }
-            _shiftSpeedX = 1.0f;        //Set thruster speed modifier to default
+            ThrusterDeactivated();
 
             //Speed Boost active only, boost thruster color
             if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorSpeedBoost_On; Debug.Log("Speed Boost Only"); }
-        } 
+        }
+
+        //Refueling        
+        Refueling_ShipSystemCheck();
+
+        //UPDATE UI: Fuel
+        _uiManager.Update_ThrusterFuel(_thrusterFuel);
+    }
+
+    //Normal Speed and Thruster Color
+    public void ThrusterDeactivated()
+    {        
+        if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; Debug.Log("Thruster released."); }
+        _shiftSpeedX = 1.0f;        //Set thruster speed modifier to default
+    }
+
+    //THRUSTER FUEL BURN
+    public void BurnThrusters()
+    {
+        _thrusterFuel -= 0.002f;
+        //Thruster Actived plus Speed Boost
+        if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+    }
+
+    //REFUEL CHECK
+    public void Refueling_ShipSystemCheck()
+    {
+        //Refueling
+        //Is true if refueling
+        if (_isRefueling)
+        {
+            _thrusterFuel += 0.0025f;                           //Refuel
+            if (_thrusterFuel >= 1) { _isRefueling = false; }   //Full, refueling done
+        }
     }
 
     public void TurnLeft(float turnAmt)
@@ -473,7 +533,7 @@ public class Player : MonoBehaviour
     {
         _isShieldActive = true;                 //SET toggle check active
         _shieldEnergy += 1;
-        
+        if(_shieldEnergy > 4) { _shieldEnergy = 4; }
         _shieldVisualsPrefab.SetActive(true);   //SET shield prefab active to display shield
         UpdateShieldColor();
         //enable visualizer
@@ -494,10 +554,12 @@ public class Player : MonoBehaviour
     {
         switch (_shieldEnergy)
         {
-            case 4: shieldColor.GetComponent<SpriteRenderer>().color = Color.white; break;
-            case 3: shieldColor.GetComponent<SpriteRenderer>().color = Color.green; break;
-            case 2: shieldColor.GetComponent<SpriteRenderer>().color = Color.red; break;
-            case 1: shieldColor.GetComponent<SpriteRenderer>().color = Color.magenta; break;
+            case 1: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.magenta; break;
+            case 2: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.red; break;
+            case 3: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.green; break;
+
+            case 4: 
+            default: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.white; break; 
         }
     }
     //SCORE: ADD POINTS(int ~points set by call)
