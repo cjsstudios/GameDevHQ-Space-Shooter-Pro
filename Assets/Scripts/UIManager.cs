@@ -24,7 +24,10 @@ public class UIManager : MonoBehaviour
     private GameManager _gameManager;
 
     [SerializeField]
-    private Slider _thrusterFuel_UI;  //Thruster fuel UI scaler ref @inspector
+    private Slider _thrusterFuel_UI;  //Thruster fuel UI Slider ref @inspector
+
+    [SerializeField]
+    private Slider _ammoCount_UI;   //Ammo UI Slider ref @inspector
 
     //[SerializeField]
     //private bool _canRestart = false; //**NOT IN USE
@@ -90,15 +93,16 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(0.75f);
         } 
     }
-    /**/
+    
+    //Update UI: FUEL
     public void Update_ThrusterFuel(float fuel)
     {
         _thrusterFuel_UI.value = fuel;
     }
-    private void Update()
-    {
-       
 
+    //Update UI: AMMO
+    public void Update_AmmoCount(int ammo)
+    {
+        _ammoCount_UI.value = ammo;
     }
-    
 }

@@ -61,6 +61,8 @@ public class Player : MonoBehaviour
     private float _canFire = 0.0f;      //Var to hold new time to cross-check fire rate
     [SerializeField]
     private int _ammoLaser = 15; 
+    [SerializeField]
+    private bool _isReloadingAmmo;
 
     //Weapons - Triple Shot
     [SerializeField]
@@ -102,13 +104,6 @@ public class Player : MonoBehaviour
     private GameObject _leftEngine;         //Set @Inspector
     [SerializeField]
     private GameObject[] _bothEngines = new GameObject[1];  //Array of engines for random   //Set @Inspector
-
-
-
-
-
-
-
 
     private Animator _animPlayer;
 
@@ -178,6 +173,16 @@ public class Player : MonoBehaviour
     {
         CalculateMovement();
 
+        //RELOAD AMMO
+        if ((_ammoLaser == 0 || _fireRate == 0.0f ) && !_isReloadingAmmo)
+        {
+            Debug.Log("OUT OF AMMO!");
+            _isReloadingAmmo = true;
+            //StartCoroutine("AmmoLaser_Reload");
+            //InvokeRepeating("Reload_AmmoLaser", 1.0f, 10.0f);
+            InvokeRepeating("Reload_AmmoLaser", 0f, 0.75f);
+        }
+
         //SHOOT LASER
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -238,6 +243,9 @@ public class Player : MonoBehaviour
 
         //Refueling        
         Refueling_ShipSystemCheck();
+
+        //UPDATE UI: Ammo
+        _uiManager.Update_AmmoCount(_ammoLaser);
 
         //UPDATE UI: Fuel
         _uiManager.Update_ThrusterFuel(_thrusterFuel);
@@ -375,6 +383,8 @@ public class Player : MonoBehaviour
             Debug.Log("Triple Laser Shot by Player");
             Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
             _ammoLaser--;
+            //play laser audio clip
+            _audioSource.Play();
         }
         else
         {
@@ -383,20 +393,30 @@ public class Player : MonoBehaviour
             {
                 Instantiate(_laserPrefab, transform.position + new Vector3(0f, 1.0f, 0f), Quaternion.identity);
                 _ammoLaser--;
+                //play laser audio clip
+                _audioSource.Play();
             }
             
-            if (_ammoLaser == 0)
+            if (_ammoLaser <= 0)
+            {
+                //InvokeRepeating("AmmoLaser_Reload", 1.0f, 1.0f);
+                Debug.Log("RELOADING AMMO PLEASE WAIT!!!");
+            }
+            //RELOAD AMMO
+            /*
+            if (_ammoLaser == 0 || _fireRate == 0.0f)
             {
                 Debug.Log("OUT OF AMMO!");
-                StartCoroutine("AmmoLaser_Reload");
-            }
-            //Debug.Break();
+                StartCoroutine("AmmoLaser_Reload", 1.0f);
+            }            
+            */
         }
 
-        //play laser audio clip
-        _audioSource.Play();
-        //_audioLaser.Play();   //**NOT IN USE
-        
+    }
+
+    public void Reload_AmmoLaser()
+    {
+        StartCoroutine("AmmoLaser_Reload");
     }
 
     //RELOAD LASER AMMO
@@ -404,16 +424,19 @@ public class Player : MonoBehaviour
     {
         if (_ammoLaser < 15)
         {
+            _isReloadingAmmo = true;
             _fireRate = 0.0f;
             _ammoLaser++;
             Debug.Log("RELOADING AMMO (" + _ammoLaser + ")");
-            yield return new WaitForSeconds(15f);
+            yield return new WaitForSeconds(30.75f);
         }
         else
         {
             Debug.Log("Reloaded!! Lasers Active");
-            _fireRate = 0.5f;
-            
+            _isReloadingAmmo = false;
+            //StopCoroutine("AmmoLaser_Reload");
+            CancelInvoke();
+            _fireRate = 0.5f;            
         }
 
     }
@@ -554,11 +577,11 @@ public class Player : MonoBehaviour
     {
         switch (_shieldEnergy)
         {
-            case 1: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.magenta; break;
-            case 2: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.red; break;
-            case 3: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.green; break;
+            case 4: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.magenta; break;
+            case 1: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.red; break;
+            case 2: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.green; break;
 
-            case 4: 
+            case 3: 
             default: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.white; break; 
         }
     }
