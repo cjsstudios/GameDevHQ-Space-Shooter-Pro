@@ -60,7 +60,9 @@ public class Player : MonoBehaviour
     private float _fireRate = 0.5f;     //Fire Rate   *Override @Inspector
     private float _canFire = 0.0f;      //Var to hold new time to cross-check fire rate
     [SerializeField]
-    private int _ammoLaser = 15; 
+    private int _ammoLaser = 15;
+    [SerializeField]
+    private int _ammoLaserMax = 15;
     [SerializeField]
     private bool _isReloadingAmmo;
 
@@ -422,7 +424,7 @@ public class Player : MonoBehaviour
     //RELOAD LASER AMMO
     IEnumerator AmmoLaser_Reload()
     {
-        if (_ammoLaser < 15)
+        if (_ammoLaser < _ammoLaserMax)
         {
             _isReloadingAmmo = true;
             _fireRate = 0.0f;
@@ -511,6 +513,18 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void HealthPowerUp()
+    {
+        if (_lives < 3)
+        {
+            _lives = 3;
+            _bothEngines[0].SetActive(false);
+            _bothEngines[1].SetActive(false);
+            _uiManager.UpdateLives(_lives);
+            Debug.Log("Health!!! Ship Repaired");
+        }
+    }
+
     //POWERUP: TRIPLESHOT ACTIVE
     //CB: <Powerup> @OnTriggerEnter2D
     public void TripleShotActive()
@@ -585,6 +599,15 @@ public class Player : MonoBehaviour
             default: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.white; break; 
         }
     }
+
+    public void AmmoPowerUp()
+    {
+        _ammoLaserMax++;
+        Debug.Log("Max Ammo is " + _ammoLaserMax);
+    }
+
+
+
     //SCORE: ADD POINTS(int ~points set by call)
     public void AddScore(int points)
     {

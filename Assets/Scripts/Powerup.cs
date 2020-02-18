@@ -68,6 +68,15 @@ public class Powerup : MonoBehaviour
                         //call shield active
                         break;
 
+                    case 3:
+                        Debug.Log("Ammo Laser Collected");
+                        player.AmmoPowerUp();
+                        break;
+
+                    case 4: Debug.Log("Health Collected");
+                        player.HealthPowerUp();
+                        break;
+
                     default:
                         Debug.Log("Unknown Powerup");
                         break;
