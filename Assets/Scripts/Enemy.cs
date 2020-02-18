@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
     private Animator _enemyAnimator;    //handle to animator component
 
     private Player _player;             //<Player> ref
+    private Mine _mineFire;             //<Mine>ref
 
     private SoundFX _explosionSoundFX;  //<SoundFX> ref
 
@@ -37,7 +38,7 @@ public class Enemy : MonoBehaviour
         _enemyAnimator = GetComponent<Animator>();                                                  //<Animator> ref
         if (_enemyAnimator == null) { Debug.LogError("_enemyAnimator is NULL"); }                   //<Animator> null-check
 
-        _explosionSoundFX = UnityEngine.GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();   //<SoundFX> ref
+        _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();               //<SoundFX> ref
         if (_explosionSoundFX == null) { Debug.LogError("_explosionSoundFX is NULL"); }             //<SoundFX> null-check
     }
 
@@ -114,6 +115,19 @@ public class Enemy : MonoBehaviour
                 //transform.position = (new Vector3(Random.Range(-9.0f, 9.0f), _spawnY, 0f));   //**NOT IN USE Respawn enemy instead of destroying
                 DestroyEnemy();
             }
+        }
+
+        //if(other.CompareTag("Mine"))  //Mine hits enemy
+        if (other.tag == "Mine") 
+        {
+            Debug.Log("Enemy hit mine!!");
+            Destroy(other.gameObject);
+            if(_player != null)
+            {
+                _player.AddScore(15);
+            }
+            DestroyEnemy();
+            //Invoke("DestroyEnemy", 1.0f);
         }
     }
 

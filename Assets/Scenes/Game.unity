@@ -2597,6 +2597,8 @@ MonoBehaviour:
   _bothEngines:
   - {fileID: 1408330323}
   - {fileID: 2029498730}
+  _mineFirePrefab: {fileID: 2815512607417946016, guid: 77a1459aab85f0349945503d5b8d773e,
+    type: 3}
 --- !u!212 &1817394453
 SpriteRenderer:
   m_ObjectHideFlags: 0

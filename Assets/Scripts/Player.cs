@@ -107,6 +107,10 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject[] _bothEngines = new GameObject[1];  //Array of engines for random   //Set @Inspector
 
+    //Mines - Secondary Weapon
+    [SerializeField]
+    private GameObject _mineFirePrefab;     //Set @Inspector
+
     private Animator _animPlayer;
 
     //START
@@ -373,7 +377,9 @@ public class Player : MonoBehaviour
         _canFire = Time.time + _fireRate;           //Set new time for fire rate
                                                     //Debug.Log("Can Fire Time: " + _canFire);
                                                     //Debug.Log("MathCheck: FireRate = (" + _fireRate + ") <> GameTime(inSec) = " + Time.time + " <> Is FireRate + Time = " + _canFire);
-
+         //Spawn Space Mine
+        var _spaceMine = Instantiate(_mineFirePrefab, transform.position, Quaternion.identity);
+        //_spaceMine.transform.Translate(Vector3.up *5* Time.deltaTime);
         //Set five second timer for secondary fire power
         //Revert back to laser
         //Shoot triple-shot if active, otherwise shoot default laser
