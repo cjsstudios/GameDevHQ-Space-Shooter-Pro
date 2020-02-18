@@ -29,12 +29,7 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private Slider _ammoCount_UI;   //Ammo UI Slider ref @inspector
 
-    //[SerializeField]
-    //private bool _canRestart = false; //**NOT IN USE
-
     //START
-    //Hide GameOver & GameRestart text
-    //Set <GameManager> ref
     void Start()
     {
         //Player player = GameObject.Find("Player").GetComponent<Player>();
@@ -61,13 +56,6 @@ public class UIManager : MonoBehaviour
         //display img sprite
         //give it a new sprite based on current lives index
         _livesImg.sprite = _livesSprite[currentLives];      //SET lives image to current sprite array[lives]
-        /*
-         * NOT IN USE (followed tutorial)
-        if (currentLives == 0)
-        {
-            _gameOverText.gameObject.SetActive(true);
-        }
-        */
     }
 
     //DISPLAY GAME OVER TEXT

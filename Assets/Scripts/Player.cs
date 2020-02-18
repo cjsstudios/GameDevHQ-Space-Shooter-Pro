@@ -335,23 +335,11 @@ public class Player : MonoBehaviour
         //Another solution (Tutorial)
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
         //*Debug.Log("Ship is moveable!! Direction: " + direction);
-        //If SpeedBoost is active then multiply by power-up speed boost..
-        //..otherwise speed is normal
+
         float _speedModified = _speed * _powerupSpeedX * _shiftSpeedX;
         //*Debug.Log("Speed: " + _speed + " PowerupSpeedX: " + _powerupSpeedX + " ShiftSpeed" + _shiftSpeedX);
         //*Debug.Log("Current Speed: " + _speedModified);
         transform.Translate(direction * _speedModified * Time.deltaTime);   //Multipliers default to 1.0f
-        /*
-        if (_isSpeedBoostActive == true)
-        {
-            transform.Translate(direction * _powerupSpeedX * Time.deltaTime);
-        }
-        else
-        {
-            transform.Translate(direction * _speed * Time.deltaTime);
-        }        
-        /**/
-        //only 1 line of code with multiplier, just set multiplier to 1 when off
 
         //Move Horizontal & Verticle with y-clamp
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0f), 0f);   //Clamps the y-cord (Prevent: ship from moving up pass clamp y-cords, up&down)

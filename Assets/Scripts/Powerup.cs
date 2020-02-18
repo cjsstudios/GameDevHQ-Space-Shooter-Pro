@@ -15,15 +15,6 @@ public class Powerup : MonoBehaviour
     [SerializeField]
     private AudioClip _audioClipPowerup;    //<AudioClip> ref
 
-    /*
-     **NOT IN USE
-    private void Start()
-    {
-        _audioSource = GetComponent<AudioSource>();
-        if(_audioSource == null) { Debug.LogError("_audioSource Powerup is NULL"); }
-    }
-    */
-
     //UPDATE
     //Move powerup down until off screen-bottom, then destroy self
     void Update()
