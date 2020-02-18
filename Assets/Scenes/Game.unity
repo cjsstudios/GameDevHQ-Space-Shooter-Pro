@@ -1650,6 +1650,7 @@ MonoBehaviour:
   _restartText: {fileID: 1495381125}
   _gameManager: {fileID: 580220667}
   _thrusterFuel_UI: {fileID: 1278931764}
+  _ammoCount_UI: {fileID: 1269757216}
 --- !u!1 &1269757214
 GameObject:
   m_ObjectHideFlags: 0
@@ -2267,7 +2268,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0.27189827, a: 1}
+  m_Color: {r: 1, g: 0, b: 0.017761707, a: 0.80784315}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -2642,6 +2643,7 @@ MonoBehaviour:
     type: 3}
   _fireRate: 1
   _ammoLaser: 15
+  _isReloadingAmmo: 0
   _isTripleShotActive: 0
   _tripleShotPrefab: {fileID: 4671307771673799561, guid: fa9658c8378204c48bf2b922593eaf4a,
     type: 3}
