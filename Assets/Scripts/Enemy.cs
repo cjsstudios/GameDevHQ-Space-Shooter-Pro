@@ -103,6 +103,7 @@ public class Enemy : MonoBehaviour
             DestroyEnemy();
         }
 
+        //ENEMY HIT PLAYER LASER
         //if(other.CompareTag("Laser"))   //Laser hits enemy
         if (other.tag == "Laser")
         {
@@ -119,6 +120,7 @@ public class Enemy : MonoBehaviour
             }
         }
 
+        //ENEMY HIT MINE
         //if(other.CompareTag("Mine"))  //Mine hits enemy
         if (other.tag == "Mine") 
         {
