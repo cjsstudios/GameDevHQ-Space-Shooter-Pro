@@ -19,8 +19,6 @@ public class Astroid : MonoBehaviour
     //Get ref to <SpawnManager> & <SoundFX>
     private void Start()
     {
-        //_astroidAnim = GetComponent<Animator>();
-        //if (_astroidAnim == null) { Debug.LogError("_astroidAnim is NULL"); }
         _spawnManager = UnityEngine.GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();
         if (_spawnManager == null) { Debug.LogError("_spawnManager is NULL"); }
 
@@ -40,17 +38,12 @@ public class Astroid : MonoBehaviour
     {
         if (other.tag == "Laser")
         {
-            //GameObject explostionAstroid = Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
             Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
             Destroy(other.gameObject);
             _spawnManager.StartSpawning();
             Debug.Log("Spawning");
             _explosionSoundFX.PlayExplosionSFX();
-            Destroy(this.gameObject, 0.25f);
-            //Destroy(explostionAstroid, 3.0f);
+            Destroy(this.gameObject, 0.25f);            
         }
     }
-    //check Laser collission (trigger)
-    //instantiate explosion at the position of the astroid (us)
-    //destroy the explosion at end of animaiton
 }

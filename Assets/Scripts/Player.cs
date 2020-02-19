@@ -5,82 +5,121 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    //VARS FLOAT
+    //References - Managers
+    SpawnManager _spawnManager;         //<SpawnManager> ref 
+    private UIManager _uiManager;       //<UIManager> ref
+
+    //References - Audio
+    [SerializeField]
+    private AudioSource _audioSource;   //<AudioSource> ref
+    [SerializeField]
+    private AudioClip _laserSoundClip;  //<AudioClip> ref of Laser sound  //Set @Inspector 
+    private SoundFX _explosionSoundFX;  //<SoundFX> ref of explosion sound
+
+    //Reference - UI
+   
+
+    //VARS - Gameplay
+    [SerializeField]
+    public int _score = 0;              //Score
+
+    //VARS - Player Ship
+    //Health - Lives
+    [SerializeField]
+    private int _lives = 3;             //Player lives
+    
+    //Movement
     [SerializeField]
     private float _speed = 3.5f;        //Movement speed
+    //[SerializeField]
+    //private int _direction;             //Direction of x, y input axis
 
+    //Sprites
     [SerializeField]
-    private GameObject _laserPrefab;    //Set @Inspector
+    public Sprite _spr_shipTurn;                        //Current sprite passed to render
+    [SerializeField]
+    public Sprite[] _spr_ShipTurnLeft = new Sprite[9];  //Array of turn left sprites
+    [SerializeField]
+    public Sprite[] _spr_ShipTurnRight = new Sprite[9]; //Array of turn right sprites
 
+    //Thruster - Colors
+    private Color _colorThruster_On;
+    private Color _colorSpeedBoost_On;
+    private Color _colorBoostAndThruster_On;
+
+    //Thruster - Fuel
+    [SerializeField]
+    private float _thrusterFuel;        //Amount of fuel for thruster
+    [SerializeField]
+    private bool _isRefueling;          //Refuel check, true is true
+
+    //Weapons - Laser
+    [SerializeField]
+    private GameObject _laserPrefab;    //Set @Inspector    
     [SerializeField]
     private float _fireRate = 0.5f;     //Fire Rate   *Override @Inspector
     private float _canFire = 0.0f;      //Var to hold new time to cross-check fire rate
     [SerializeField]
     private int _ammoLaser = 15;
     [SerializeField]
-    private int _lives = 3;             //Player lives
+    private int _ammoLaserMax = 15;
+    [SerializeField]
+    private bool _isReloadingAmmo;
 
-    SpawnManager _spawnManager;         //<SpawnManager> ref
+    //Weapons - Space Mine
+    [SerializeField]
+    private bool _isSpaceMineActive = false;            //Set active toggle
+    [SerializeField]
+    private GameObject _spaceMinePrefab;                //Set @inspector
+    [SerializeField]
+    private int _mineSupply = 0;                            //mine supply count
+    [SerializeField]
+    private int _mineAmmoMax = 9;                       //Set max mine ammo
 
-    //Triple Shot
+    //Weapons - Triple Shot
     [SerializeField]
     private bool _isTripleShotActive = false;           //3shot active toggle
     [SerializeField]
     private GameObject _tripleShotPrefab;               //Set @Inspector
     [SerializeField]
     private float _coolDownTimeTripleShot = 5.0f;       //3shot cool down time
-    //Speed Boost
+
+    //PowerUp - Speed Boost
     [SerializeField]
     private bool _isSpeedBoostActive = false;           //SpeedBoost active toggle
-    //[SerializeField]
-    //private float _powerupSpeed = 8.5f;                 //Player-Speed when SpeedBoost active ~~WAS MULTIPLIER~~
-    [SerializeField]
-    private float _powerupSpeedX = 1.0f;                 //Player-Speed when SpeedBoost active ~~MULTIPLIER~~
-    [SerializeField]
-    private float _shiftSpeedX = 1.0f;                 //Player-Speed when LShift or MouseButton[2] active ~~MULTIPLIER~~
     [SerializeField]
     private float _coolDownSpeedBoost = 5.0f;           //SpeedBoost cooldown time
-    //Shield
+
+    //Speed Modifiers
     [SerializeField]
-    private GameObject _shieldPrefab;       //Set @Inspector
+    private float _powerupSpeedX = 1.0f;                //Player-Speed when SpeedBoost active ~~MULTIPLIER~~
+    [SerializeField]
+    private float _shiftSpeedX = 1.0f;                  //Player-Speed when LShift or MouseButton[2] active ~~MULTIPLIER~~
+
+    //PowerUp - Shield
+    [SerializeField]
+    private GameObject _shieldPrefab;                   //Set @Inspector
     [SerializeField]
     private bool _isShieldActive = false;               //Shield active toggle
     [SerializeField]
-    private int _shieldEnergy = 0; //Energy of shield
-    public GameObject shieldColor;
-    [SerializeField]
     private float _coolDownShieldPowerup = 5.0f;        //Shield cooldown time
     [SerializeField]
-    private GameObject _shieldVisualsPrefab;//Set @Inspector
+    private GameObject _shieldVisualsPrefab;            //Set @Inspector
+    [SerializeField]
+    private int _shieldEnergy = 0;                      //Energy of shield
+    public GameObject shieldColor;                      //Color of shield 
+
+    //Engines for damage
     [SerializeField]
     private GameObject _rightEngine;        //Set @Inspector
     [SerializeField]
     private GameObject _leftEngine;         //Set @Inspector
     [SerializeField]
     private GameObject[] _bothEngines = new GameObject[1];  //Array of engines for random   //Set @Inspector
-    //[SerializeField]
-    //private enum Turn { None, Left, Right };
-    [SerializeField]
-    private int _direction;
-    [SerializeField]
-    public Sprite _spr_shipTurn;
-    [SerializeField]
-    public Sprite[] _spr_ShipTurnLeft = new Sprite[9];
-    [SerializeField]
-    public Sprite[] _spr_ShipTurnRight = new Sprite[9];
-    [SerializeField]
-    public int _score = 0;              //Score
 
-    private UIManager _uiManager;       //<UIManager> ref
-
-    //var to store audio clip
-    //private AudioSource _audioLaser;  //*NOT IN USE
+    //Mines - Secondary Weapon
     [SerializeField]
-    private AudioClip _laserSoundClip;  //<AudioClip> ref of Laser sound  //Set @Inspector 
-    [SerializeField]
-    private AudioSource _audioSource;   //<AudioSource> ref
-
-    private SoundFX _explosionSoundFX;  //<SoundFX> ref of explosion sound
+    private GameObject _mineFirePrefab;     //Set @Inspector
 
     private Animator _animPlayer;
 
@@ -91,16 +130,21 @@ public class Player : MonoBehaviour
     //Set engines to array
     void Start()
     {
-        //take the current position = new position (0, 0, 0)
-        //transform.position = new Vector3(0f, -2.12f, 0f);                               //Player spawn pos
+        //transform.position = new Vector3(0f, -2.12f, 0f);                             //Player spawn pos, Override-@inpepctor
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();  //<SpawnManager> ref
         _uiManager = GameObject.Find("Canvas").GetComponent<UIManager>();               //<UIManager> ref
         _audioSource = GetComponent<AudioSource>();                                     //<AudioSource> ref
         _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();   //<SoundFX> ref
         _spr_shipTurn = GetComponent<SpriteRenderer>().sprite = _spr_ShipTurnLeft[0];
+
         shieldColor = new GameObject();
         shieldColor = GameObject.Find("Shield");
+        _colorBoostAndThruster_On = new Color(0.3f, 0f, 1.0f, 0.86f);                   //Purple blend
+        _colorThruster_On = new Color(1.0f, 0f, 1.0f, 0.86f);                           //Red blend
+        _colorSpeedBoost_On = new Color(0.5f, 1.0f, 0f, 0.86f);                         //Green blend
 
+
+        _thrusterFuel = 1.0f;
         _animPlayer = GetComponent<Animator>();
         //NULL CHECKS: 
         //<SpawnManger>
@@ -145,6 +189,15 @@ public class Player : MonoBehaviour
     {
         CalculateMovement();
 
+        //RELOAD AMMO
+        if ((_ammoLaser == 0 || _fireRate == 0.0f ) && !_isReloadingAmmo)
+        {
+            Debug.Log("OUT OF AMMO!");
+            _isReloadingAmmo = true;
+            InvokeRepeating("Reload_AmmoLaser", 0f, 0.75f);
+        }
+
+        //SHOOT LASER
         if (Input.GetKeyDown(KeyCode.Space))
         {
             if (Time.time > _canFire)
@@ -158,17 +211,93 @@ public class Player : MonoBehaviour
             }   //Player shoot attempt too early
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetButtonDown("Fire3"))
-        {            
-            GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(1.0f, 0f, 1.0f, 0.86f);
-            _shiftSpeedX = 1.75f;
-            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = new Color(0.3f, 0f, 1.0f, 0.86f); }
+        //SHOOT SPECIAL WEAPON I
+        if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl) || Input.GetMouseButtonDown(1))
+        {
+            //ToDo: Add special weapon
+            Debug.Log("Aquire a Special Weapon");
         }
 
+        //THRUSTER ACTIVE
+            //Colorize thrusters on button press
+            //On key press add thruster speed multiplier
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetButton("Fire3"))
+        {
+            if (!_isRefueling)
+            {
+                //Burn Thrusters
+                //Overwrite vars if no thruster fuel left
+                if (_thrusterFuel > 0 && _isRefueling == false)  //Has Fuel & Not Refueling
+                {
+                    //Thruster Activated
+                    GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
+                    Debug.Log("Thruster");
+                    _shiftSpeedX = 1.75f;       //Set thruster speed modifier
+                    BurnThrusters();                    //Decrease fuel
+                    //Thruster Actived plus Speed Boost
+                    if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+                }
+                else
+                {
+                    _isRefueling = true;                        //Once true then loop is false
+                    Debug.Log("OUT OF FUEL!!! REFUELING...");
+                    ThrusterDeactivated();
+                }
+
+                //Thruster Actived plus Speed Boost
+                //if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+            }
+        }
+
+        //THRUSTER + SPEED BOOST TOGGLE
+            //to default color on button Release
+            //Always true if these buttons not pushed
+            //No thruster activated (normal or speed boost active only)
         if (Input.GetKeyUp(KeyCode.LeftShift) && Input.GetButtonUp("Fire3"))
         {
-            if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; }
-            _shiftSpeedX = 1.0f;
+            //Normal Speed and Thruster Color
+            ThrusterDeactivated();
+
+            //Speed Boost active only, boost thruster color
+            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorSpeedBoost_On; Debug.Log("Speed Boost Only"); }
+        }
+
+        //Refueling        
+        Refueling_ShipSystemCheck();
+
+        //UPDATE UI: Ammo
+        _uiManager.Update_AmmoCount(_ammoLaser);
+
+        //UPDATE UI: Fuel
+        _uiManager.Update_ThrusterFuel(_thrusterFuel);
+
+        _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply);
+    }
+
+    //Normal Speed and Thruster Color
+    public void ThrusterDeactivated()
+    {        
+        if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; Debug.Log("Thruster released."); }
+        _shiftSpeedX = 1.0f;        //Set thruster speed modifier to default
+    }
+
+    //THRUSTER FUEL BURN
+    public void BurnThrusters()
+    {
+        _thrusterFuel -= 0.002f;
+        //Thruster Actived plus Speed Boost
+        if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+    }
+
+    //REFUEL CHECK
+    public void Refueling_ShipSystemCheck()
+    {
+        //Refueling
+        //Is true if refueling
+        if (_isRefueling)
+        {
+            _thrusterFuel += 0.0025f;                           //Refuel
+            if (_thrusterFuel >= 1) { _isRefueling = false; }   //Full, refueling done
         }
     }
 
@@ -220,23 +349,11 @@ public class Player : MonoBehaviour
         //Another solution (Tutorial)
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
         //*Debug.Log("Ship is moveable!! Direction: " + direction);
-        //If SpeedBoost is active then multiply by power-up speed boost..
-        //..otherwise speed is normal
+
         float _speedModified = _speed * _powerupSpeedX * _shiftSpeedX;
         //*Debug.Log("Speed: " + _speed + " PowerupSpeedX: " + _powerupSpeedX + " ShiftSpeed" + _shiftSpeedX);
         //*Debug.Log("Current Speed: " + _speedModified);
         transform.Translate(direction * _speedModified * Time.deltaTime);   //Multipliers default to 1.0f
-        /*
-        if (_isSpeedBoostActive == true)
-        {
-            transform.Translate(direction * _powerupSpeedX * Time.deltaTime);
-        }
-        else
-        {
-            transform.Translate(direction * _speed * Time.deltaTime);
-        }        
-        /**/
-        //only 1 line of code with multiplier, just set multiplier to 1 when off
 
         //Move Horizontal & Verticle with y-clamp
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0f), 0f);   //Clamps the y-cord (Prevent: ship from moving up pass clamp y-cords, up&down)
@@ -263,19 +380,34 @@ public class Player : MonoBehaviour
         }
     }
 
+ 
     //SHOOT
     void FireLaser()
     {
         _canFire = Time.time + _fireRate;           //Set new time for fire rate
         //Debug.Log("Can Fire Time: " + _canFire);
         //Debug.Log("MathCheck: FireRate = (" + _fireRate + ") <> GameTime(inSec) = " + Time.time + " <> Is FireRate + Time = " + _canFire);
-
+        
         //Shoot triple-shot if active, otherwise shoot default laser
         if (_isTripleShotActive)    
         {
             Debug.Log("Triple Laser Shot by Player");
             Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
             _ammoLaser--;
+            //play laser audio clip
+            _audioSource.Play();
+        }
+        else if (_isSpaceMineActive == true)
+        {
+            //Spawn Space Mine
+            Debug.Log("Space Mine Deployed by Player");
+            if (_mineSupply > 0)
+            {
+                var _spaceMine = Instantiate(_mineFirePrefab, transform.position, Quaternion.identity);
+                _mineSupply--;
+                //change audio clip, play audio clip
+            }
+
         }
         else
         {
@@ -284,37 +416,42 @@ public class Player : MonoBehaviour
             {
                 Instantiate(_laserPrefab, transform.position + new Vector3(0f, 1.0f, 0f), Quaternion.identity);
                 _ammoLaser--;
+                //play laser audio clip
+                _audioSource.Play();
             }
             
-            if (_ammoLaser == 0)
+            if (_ammoLaser <= 0)
             {
-                Debug.Log("OUT OF AMMO!");
-                StartCoroutine("AmmoLaser_Reload");
+                //InvokeRepeating("AmmoLaser_Reload", 1.0f, 1.0f);
+                Debug.Log("RELOADING AMMO PLEASE WAIT!!!");
             }
-            //Debug.Break();
         }
-
-        //play laser audio clip
-        _audioSource.Play();
-        //_audioLaser.Play();   //**NOT IN USE
-        
     }
 
-    //RELOAD LASER AMMO
+    //LASER AMMO RELOAD
+    public void Reload_AmmoLaser()
+    {
+        StartCoroutine("AmmoLaser_Reload");
+    }
+
+    //RELOAD LASER AMMO COROUTINE
     IEnumerator AmmoLaser_Reload()
     {
-        if (_ammoLaser < 15)
+        if (_ammoLaser < _ammoLaserMax)
         {
+            _isReloadingAmmo = true;
             _fireRate = 0.0f;
             _ammoLaser++;
             Debug.Log("RELOADING AMMO (" + _ammoLaser + ")");
-            yield return new WaitForSeconds(15f);
+            yield return new WaitForSeconds(30.75f);
         }
         else
         {
             Debug.Log("Reloaded!! Lasers Active");
-            _fireRate = 0.5f;
-            
+            _isReloadingAmmo = false;
+            //StopCoroutine("AmmoLaser_Reload");
+            CancelInvoke();
+            _fireRate = 0.5f;            
         }
 
     }
@@ -389,6 +526,18 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void HealthPowerUp()
+    {
+        if (_lives < 3)
+        {
+            _lives = 3;
+            _bothEngines[0].SetActive(false);
+            _bothEngines[1].SetActive(false);
+            _uiManager.UpdateLives(_lives);
+            Debug.Log("Health!!! Ship Repaired");
+        }
+    }
+
     //POWERUP: TRIPLESHOT ACTIVE
     //CB: <Powerup> @OnTriggerEnter2D
     public void TripleShotActive()
@@ -404,6 +553,25 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(_coolDownTimeTripleShot);
         _isTripleShotActive = false;            //Set inactive after cooldown timer
        
+    }
+
+    public void SpaceMineActive()
+    {
+        _mineSupply = _mineAmmoMax;            //Add max mines to supply 
+        Debug.Log("Mine Supply is " + _mineSupply + " and Max Mines is " + _mineAmmoMax);
+
+        _isSpaceMineActive = true;             //Set active
+        StopCoroutine(SpaceMineCoolDown());
+        StartCoroutine(SpaceMineCoolDown());   //Begin cooldown
+    }
+
+    //POWERUP: SPACE MINE
+    IEnumerator SpaceMineCoolDown()
+    {
+        
+        yield return new WaitForSeconds(5.0f);
+        _mineSupply = 0;                        //Zero Mines
+        _isSpaceMineActive = false;             //Set inactive after cooldown timer
     }
 
     //POWERUP: SPEED BOOST ACTIVE
@@ -434,7 +602,7 @@ public class Player : MonoBehaviour
     {
         _isShieldActive = true;                 //SET toggle check active
         _shieldEnergy += 1;
-        
+        if(_shieldEnergy > 4) { _shieldEnergy = 4; }
         _shieldVisualsPrefab.SetActive(true);   //SET shield prefab active to display shield
         UpdateShieldColor();
         //enable visualizer
@@ -455,12 +623,23 @@ public class Player : MonoBehaviour
     {
         switch (_shieldEnergy)
         {
-            case 4: shieldColor.GetComponent<SpriteRenderer>().color = Color.white; break;
-            case 3: shieldColor.GetComponent<SpriteRenderer>().color = Color.green; break;
-            case 2: shieldColor.GetComponent<SpriteRenderer>().color = Color.red; break;
-            case 1: shieldColor.GetComponent<SpriteRenderer>().color = Color.magenta; break;
+            case 4: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.magenta; break;
+            case 1: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.red; break;
+            case 2: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.green; break;
+
+            case 3: 
+            default: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.white; break; 
         }
     }
+
+    public void AmmoPowerUp()
+    {
+        _ammoLaserMax++;
+        Debug.Log("Max Ammo is " + _ammoLaserMax);
+    }
+
+
+
     //SCORE: ADD POINTS(int ~points set by call)
     public void AddScore(int points)
     {

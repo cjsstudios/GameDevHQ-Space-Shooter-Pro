@@ -22,12 +22,22 @@ public class UIManager : MonoBehaviour
 
     [SerializeField]
     private GameManager _gameManager;
-    //[SerializeField]
-    //private bool _canRestart = false; //**NOT IN USE
+
+    [SerializeField]
+    private Slider _thrusterFuel_UI;  //Thruster fuel UI Slider ref @inspector
+
+    [SerializeField]
+    private Slider _ammoCount_UI;   //Ammo UI Slider ref @inspector
+
+    [SerializeField]
+    private Text _textStatus_UI;    //Status Text ref @inspector
+
+    public static string _statusText;   //Status text string
+
+    private float _currentFuel;
+    private int _currentAmmo, _currentMines;
 
     //START
-    //Hide GameOver & GameRestart text
-    //Set <GameManager> ref
     void Start()
     {
         //Player player = GameObject.Find("Player").GetComponent<Player>();
@@ -40,6 +50,7 @@ public class UIManager : MonoBehaviour
             Debug.LogError("Game_Manager is NULL");
         }
         _scoreText.text = "Score: " + 0;                                            //SET score to 0 on new game
+
     }
 
     //UPDATE SCORE TEXT
@@ -54,13 +65,6 @@ public class UIManager : MonoBehaviour
         //display img sprite
         //give it a new sprite based on current lives index
         _livesImg.sprite = _livesSprite[currentLives];      //SET lives image to current sprite array[lives]
-        /*
-         * NOT IN USE (followed tutorial)
-        if (currentLives == 0)
-        {
-            _gameOverText.gameObject.SetActive(true);
-        }
-        */
     }
 
     //DISPLAY GAME OVER TEXT
@@ -86,16 +90,35 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(0.75f);
         } 
     }
-    /*
+    
+    //Update UI: FUEL
+    public void Update_ThrusterFuel(float fuel)
+    {
+        _thrusterFuel_UI.value = fuel;
+       
+    }
+
+    //Update UI: AMMO
+    public void Update_AmmoCount(int ammo)
+    {
+        _ammoCount_UI.value = ammo;
+        
+    }
+
+    public void UpdateStatusText(int ammo, float fuel, int mines)
+    {
+        _currentMines = mines;
+        _currentAmmo = ammo;
+        _currentFuel = fuel;
+        float fuelPercent = Mathf.Floor(_currentFuel * 100);
+        //_statusText = ">STATUS<\nFuel: " + fuelPercent.ToString() + "\nAmmo: " + _currentAmmo.ToString() +  "%\nMines: " + _currentMines.ToString();
+        _statusText = "Fuel: " + fuelPercent.ToString() + "%             Ammo: " + _currentAmmo.ToString() + "             Mines: " + _currentMines.ToString();
+        //_textStatus_UI.color = new Color(Random.value, Random.value, Random.value);
+    }
+
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            if (_canRestart == true)
-            {
-                SceneManager.LoadScene("Game")
-            }
-        }
+        _textStatus_UI.text = _statusText;
+        
     }
-    */
 }

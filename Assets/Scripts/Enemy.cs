@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
     private Animator _enemyAnimator;    //handle to animator component
 
     private Player _player;             //<Player> ref
+    private Mine _mineFire;             //<Mine>ref
 
     private SoundFX _explosionSoundFX;  //<SoundFX> ref
 
@@ -37,7 +38,7 @@ public class Enemy : MonoBehaviour
         _enemyAnimator = GetComponent<Animator>();                                                  //<Animator> ref
         if (_enemyAnimator == null) { Debug.LogError("_enemyAnimator is NULL"); }                   //<Animator> null-check
 
-        _explosionSoundFX = UnityEngine.GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();   //<SoundFX> ref
+        _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();               //<SoundFX> ref
         if (_explosionSoundFX == null) { Debug.LogError("_explosionSoundFX is NULL"); }             //<SoundFX> null-check
     }
 
@@ -66,16 +67,18 @@ public class Enemy : MonoBehaviour
     {
         _fireRate = Random.Range(3.0f, 7.0f);   //Set random fire rate
         _canShoot = Time.time + _fireRate;      //Set (_canShoot) to time plus (_fireRate) = 1 less than fire rete (?)
-        
+
         //Debug.Log("Enemy can shoot time: (" + _canShoot + ") <> Fire Rate: ( " + _fireRate + ")");
-
-        //Instantiate Enemy Laser
-        if (_player)                            //If [Player] exist...then spawn laser  **Prevent: crash when player dies and spawn laser tries to create <Player> ref
+        
+        if (_speedEnemy > 0)  //Prevents dead enemy from shooting that is still in animation
         {
-            Debug.Log("Enemy Laser Shot");
-            GameObject enemyLaser = Instantiate(_laserEnemyPrefab, new Vector3(transform.position.x, transform.position.y - 0.73f, transform.position.z), Quaternion.identity);
+            //Instantiate Enemy Laser
+            if (_player)                            //If [Player] exist...then spawn laser  **Prevent: crash when player dies and spawn laser tries to create <Player> ref
+            {
+                Debug.Log("Enemy Laser Shot");
+                GameObject enemyLaser = Instantiate(_laserEnemyPrefab, new Vector3(transform.position.x, transform.position.y - 0.73f, transform.position.z), Quaternion.identity);
+            }
         }
-
         //enemyLaser.transform.Translate(Vector3.down * 8.0f * Time.deltaTime);
         
     }
@@ -100,6 +103,7 @@ public class Enemy : MonoBehaviour
             DestroyEnemy();
         }
 
+        //ENEMY HIT PLAYER LASER
         //if(other.CompareTag("Laser"))   //Laser hits enemy
         if (other.tag == "Laser")
         {
@@ -114,6 +118,20 @@ public class Enemy : MonoBehaviour
                 //transform.position = (new Vector3(Random.Range(-9.0f, 9.0f), _spawnY, 0f));   //**NOT IN USE Respawn enemy instead of destroying
                 DestroyEnemy();
             }
+        }
+
+        //ENEMY HIT MINE
+        //if(other.CompareTag("Mine"))  //Mine hits enemy
+        if (other.tag == "Mine") 
+        {
+            Debug.Log("Enemy hit mine!!");
+            Destroy(other.gameObject);
+            if(_player != null)
+            {
+                _player.AddScore(15);
+            }
+            DestroyEnemy();
+            //Invoke("DestroyEnemy", 1.0f);
         }
     }
 

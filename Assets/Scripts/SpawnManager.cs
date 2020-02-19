@@ -5,14 +5,12 @@ using UnityEngine;
 public class SpawnManager : MonoBehaviour
 {
     [SerializeField]
-    private UnityEngine.GameObject _enemyPrefab;    //Enemy prefab //Set @Inspector
+    private GameObject _enemyPrefab;    //Enemy prefab //Set @Inspector
     [SerializeField]
-    private UnityEngine.GameObject _enemyContainer; //Holds enemies under empty parent //Set @Inspector 
-
-    //private GameObject _tripleShotPowerupPrefab; //Not in use*
+    private GameObject _enemyContainer; //Holds enemies under empty parent //Set @Inspector 
 
     [SerializeField]
-    private UnityEngine.GameObject[] _powerups;     //Array of powerups //Set @Inspector
+    private GameObject[] _powerups;     //Array of powerups //Set @Inspector
 
     private bool _stopSpawning = false;             //Enemy spawn toggle
 
@@ -52,8 +50,7 @@ public class SpawnManager : MonoBehaviour
         while (_stopSpawning == false)
         {
             Vector3 posToSpawn = new Vector3(Random.Range(-9.0f, 9.0f), 7, 0);          //Spawn powerup random pos off screen-top
-            //GameObject newTripleShotPowerup = Instantiate(_tripleShotPowerupPrefab, posToSpawn, Quaternion.identity);
-            int randomPowerUp = Random.Range(0, 3);                                     //Set random powerup (0-2) (3 power ups)
+            int randomPowerUp = Random.Range(0, _powerups.Length);                       //Set random powerup (0-4) (5 power ups)
             Instantiate(_powerups[randomPowerUp], posToSpawn, Quaternion.identity);     //Create powerup
             yield return new WaitForSeconds(Random.Range(3, 8));                        //Spawn new powerup at random time
         }
@@ -67,6 +64,4 @@ public class SpawnManager : MonoBehaviour
         _stopSpawning = true;               //Set stopSpawning toggle
         Debug.Log("Player is out of lives");
     }
-    
-
 }
