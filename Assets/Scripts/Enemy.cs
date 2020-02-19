@@ -27,6 +27,9 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     private float _canShoot = -1.0f;    //Var to hold new time to cross-check fire rate
 
+    CameraShake _shakeCamera; 
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -40,6 +43,8 @@ public class Enemy : MonoBehaviour
 
         _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();               //<SoundFX> ref
         if (_explosionSoundFX == null) { Debug.LogError("_explosionSoundFX is NULL"); }             //<SoundFX> null-check
+
+        _shakeCamera = GameObject.Find("Main Camera").GetComponent<CameraShake>();
     }
 
     //Update
@@ -65,7 +70,7 @@ public class Enemy : MonoBehaviour
     //SHOOT ENEMY LASER
     private void EnemyShoot()
     {
-        _fireRate = Random.Range(3.0f, 7.0f);   //Set random fire rate
+        _fireRate = Random.Range(1.0f, 5.0f);   //Set random fire rate
         _canShoot = Time.time + _fireRate;      //Set (_canShoot) to time plus (_fireRate) = 1 less than fire rete (?)
 
         //Debug.Log("Enemy can shoot time: (" + _canShoot + ") <> Fire Rate: ( " + _fireRate + ")");
@@ -75,7 +80,7 @@ public class Enemy : MonoBehaviour
             //Instantiate Enemy Laser
             if (_player)                            //If [Player] exist...then spawn laser  **Prevent: crash when player dies and spawn laser tries to create <Player> ref
             {
-                Debug.Log("Enemy Laser Shot");
+                //Debug.Log("Enemy Laser Shot");
                 GameObject enemyLaser = Instantiate(_laserEnemyPrefab, new Vector3(transform.position.x, transform.position.y - 0.73f, transform.position.z), Quaternion.identity);
             }
         }
@@ -92,11 +97,12 @@ public class Enemy : MonoBehaviour
         //if(other.CompareTag("Player"))  //Enemy hits player
         if(other.tag == "Player")
         {
-            Debug.Log("Enemy Hit Player!");
+            //Debug.Log("Enemy Hit Player!");
             Player player = other.transform.GetComponent<Player>();
             if (player != null)
             {
                 player.Damage();
+                _shakeCamera.ShakeCamera();
             }
             //trigger anim
             //Destroy(this.gameObject);
@@ -107,7 +113,7 @@ public class Enemy : MonoBehaviour
         //if(other.CompareTag("Laser"))   //Laser hits enemy
         if (other.tag == "Laser")
         {
-            Debug.Log("Laser Hit Enemy!");
+            //Debug.Log("Laser Hit Enemy!");
             if(other.CompareTag("Laser"))
             {
                 Destroy(other.gameObject);
@@ -124,7 +130,7 @@ public class Enemy : MonoBehaviour
         //if(other.CompareTag("Mine"))  //Mine hits enemy
         if (other.tag == "Mine") 
         {
-            Debug.Log("Enemy hit mine!!");
+            //Debug.Log("Enemy hit mine!!");
             Destroy(other.gameObject);
             if(_player != null)
             {
@@ -143,7 +149,7 @@ public class Enemy : MonoBehaviour
     //Destroy after animation
     public void DestroyEnemy()
     {
-        Debug.Log("Enemy Destroyed!");
+        //Debug.Log("Enemy Destroyed!");
         
         this._enemyAnimator.SetTrigger("OnEnemyDeath"); //Play anim
         _speedEnemy = 0;                                //Stop movement

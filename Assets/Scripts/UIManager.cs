@@ -30,9 +30,16 @@ public class UIManager : MonoBehaviour
     private Slider _ammoCount_UI;   //Ammo UI Slider ref @inspector
 
     [SerializeField]
-    private Text _textStatus_UI;    //Status Text ref @inspector
+    private Text _textStatusFuel_UI;    //Status Text ref @inspector
+    public static string _statusTextFuel;   //Status text string
 
-    public static string _statusText;   //Status text string
+    [SerializeField]
+    private Text _textStatusAmmo_UI;    //Status Text ref @inspector
+    public static string _statusTextAmmo;   //Status text string
+
+    [SerializeField]
+    private Text _textStatusMines_UI;    //Status Text ref @inspector
+    public static string _statusTextMines;   //Status text string
 
     private float _currentFuel;
     private int _currentAmmo, _currentMines;
@@ -91,34 +98,41 @@ public class UIManager : MonoBehaviour
         } 
     }
     
-    //Update UI: FUEL
+    //UI SLIDERS REFRESH: FUEL
     public void Update_ThrusterFuel(float fuel)
     {
         _thrusterFuel_UI.value = fuel;
        
     }
 
-    //Update UI: AMMO
+    //UI SLIDERS REFRESH: AMMO
     public void Update_AmmoCount(int ammo)
     {
         _ammoCount_UI.value = ammo;
         
     }
 
-    public void UpdateStatusText(int ammo, float fuel, int mines)
+    //UI TEXT REFRESH: AMMO, FUEL, MINES
+    public void UpdateStatusText(int ammo, float fuel, int mines, int ammoMax, bool isRefuel, bool isReload)
     {
         _currentMines = mines;
         _currentAmmo = ammo;
         _currentFuel = fuel;
         float fuelPercent = Mathf.Floor(_currentFuel * 100);
         //_statusText = ">STATUS<\nFuel: " + fuelPercent.ToString() + "\nAmmo: " + _currentAmmo.ToString() +  "%\nMines: " + _currentMines.ToString();
-        _statusText = "Fuel: " + fuelPercent.ToString() + "%             Ammo: " + _currentAmmo.ToString() + "             Mines: " + _currentMines.ToString();
+        if (isRefuel) { _statusTextFuel = "RE-\nFUEL"; _textStatusFuel_UI.color = new Color(Random.value, Random.value, Random.value); } else {_statusTextFuel = "FUEL\n" + fuelPercent.ToString() + "%"; _textStatusFuel_UI.color = Color.red; }
+        if (isReload) { _statusTextAmmo = "RE-\nLOAD (" + _currentAmmo + ")"; _textStatusAmmo_UI.color = new Color(Random.value, Random.value, Random.value); } else { _statusTextAmmo = "AMMO\n " + _currentAmmo.ToString() + " (" + ammoMax + ")"; _textStatusAmmo_UI.color = Color.grey; }
+        _statusTextMines = "MINES\n " + _currentMines.ToString();
+
         //_textStatus_UI.color = new Color(Random.value, Random.value, Random.value);
     }
 
+    //UPDATE
     private void Update()
     {
-        _textStatus_UI.text = _statusText;
-        
+        //TEXT FIELD UPDATES
+        _textStatusFuel_UI.text = _statusTextFuel;
+        _textStatusAmmo_UI.text = _statusTextAmmo;
+        _textStatusMines_UI.text = _statusTextMines;        
     }
 }

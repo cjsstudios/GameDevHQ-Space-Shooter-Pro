@@ -123,7 +123,14 @@ public class Player : MonoBehaviour
 
     private Animator _animPlayer;
 
-    //START
+    [SerializeField]
+    AudioClip _sfxLaser;
+    [SerializeField]
+    AudioClip _sfxMine;
+    [SerializeField]
+    AudioClip _sfxNoAmmo;
+
+    //START==============================================================================
     //Move player to start pos
     //Get:Set <SpawnManger> <UIManager> <AudioSource> <SoundFX>
     //Deactive engine damage visuals
@@ -173,16 +180,8 @@ public class Player : MonoBehaviour
         _bothEngines[0] = _rightEngine; //Set array[0] to right engine
         _bothEngines[1] = _leftEngine;  //Set array[1] to left engine
     }
-
-    public void StopAnimation()
-    {
-        _animPlayer.StopPlayback();
-        _animPlayer.applyRootMotion = true;
-        //gameObject.GetComponent<Animator>().StopPlayback();
-        Debug.Log("Animation stopped");
-    }
-
-    //UPDATE
+    //START=============================================================START=END===========================
+    //UPDATE================================================================================================
     //Calculate player movement
     //Shoot laser on spacebar
     void Update()
@@ -196,21 +195,28 @@ public class Player : MonoBehaviour
             _isReloadingAmmo = true;
             InvokeRepeating("Reload_AmmoLaser", 0f, 0.75f);
         }
-
+        //INPUT==============================================================================================================
         //SHOOT LASER
         if (Input.GetKeyDown(KeyCode.Space))
         {
             if (Time.time > _canFire)
             {
-                //Debug.Log("Shoot Time: " + Time.time);
-                //Debug.Log("***Is GameTime " + Time.time + " > " + _canFire + " CanFire Time");
-                FireLaser();
+                if (_isReloadingAmmo)   //Play sound if player attempts to shoot with no ammo
+                {
+                    _audioSource.clip = _sfxNoAmmo;
+                    _audioSource.Play();
+                }
+                
             }
-            else {
-                //Debug.Log("TOO EARLY TO SHOOT"); 
-            }   //Player shoot attempt too early
-        }
+            else {                      //Player shoot attempt too early
+                _audioSource.clip = _sfxNoAmmo;
+                _audioSource.Play();
+            }
+            FireLaser();
 
+        }
+        
+        
         //SHOOT SPECIAL WEAPON I
         if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl) || Input.GetMouseButtonDown(1))
         {
@@ -231,7 +237,7 @@ public class Player : MonoBehaviour
                 {
                     //Thruster Activated
                     GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
-                    Debug.Log("Thruster");
+                    //Debug.Log("Thruster");
                     _shiftSpeedX = 1.75f;       //Set thruster speed modifier
                     BurnThrusters();                    //Decrease fuel
                     //Thruster Actived plus Speed Boost
@@ -243,9 +249,6 @@ public class Player : MonoBehaviour
                     Debug.Log("OUT OF FUEL!!! REFUELING...");
                     ThrusterDeactivated();
                 }
-
-                //Thruster Actived plus Speed Boost
-                //if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
             }
         }
 
@@ -261,7 +264,8 @@ public class Player : MonoBehaviour
             //Speed Boost active only, boost thruster color
             if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorSpeedBoost_On; Debug.Log("Speed Boost Only"); }
         }
-
+        //==========================================================INPUT==END====================================================
+        //SYSTEMS CHECK AND UI REFRESH============================================================================================
         //Refueling        
         Refueling_ShipSystemCheck();
 
@@ -271,13 +275,15 @@ public class Player : MonoBehaviour
         //UPDATE UI: Fuel
         _uiManager.Update_ThrusterFuel(_thrusterFuel);
 
-        _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply);
-    }
-
+        _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply, _ammoLaserMax, _isRefueling, _isReloadingAmmo);
+        //SYSTEMS END
+    }    
+    //SYSTEMS CHECK AND UI REFRESH===========================================SYTEMS END==================================
+    //UPDATE=============================================UPDATE=END======================================================
     //Normal Speed and Thruster Color
     public void ThrusterDeactivated()
     {        
-        if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; Debug.Log("Thruster released."); }
+        if (!_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = Color.white; /*Debug.Log("Thruster released.");*/ }
         _shiftSpeedX = 1.0f;        //Set thruster speed modifier to default
     }
 
@@ -286,7 +292,7 @@ public class Player : MonoBehaviour
     {
         _thrusterFuel -= 0.002f;
         //Thruster Actived plus Speed Boost
-        if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+        if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; /*Debug.Log("Thruster + Boost");*/ }
     }
 
     //REFUEL CHECK
@@ -301,30 +307,8 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void TurnLeft(float turnAmt)
-    {
-        //Set sprite img to turnDegree index
-        int turnDegree = -(int)Mathf.Floor(turnAmt * 10f);
-        if (turnDegree >= _spr_ShipTurnLeft.Length) { turnDegree = _spr_ShipTurnLeft.Length -1; }
-        //Debug.Log("TurnDegree = " + turnDegree + "LeftLength" + (_spr_ShipTurnLeft.Length-1));
-        _spr_shipTurn = _spr_ShipTurnLeft[turnDegree];
-    }
 
-    public void TurnRight(float turnAmt)
-    {
-        //Set sprite img to turnDegree index
-        int turnDegree = (int)Mathf.Floor(turnAmt * 10f);
-        if (turnDegree >= _spr_ShipTurnRight.Length ) { turnDegree = _spr_ShipTurnRight.Length-1; }
-        //Debug.Log("TurnDegree = " + turnDegree + "RightLength" + (_spr_ShipTurnRight.Length-1));
-        _spr_shipTurn = _spr_ShipTurnRight[turnDegree];
-    }
-
-    public void TurnNone()
-    {
-        //
-        //Debug.Log("Ship Not Turning!!!!!!");
-    }
-    //MOVEMENT
+    //MOVEMENT================================================================================================================
     void CalculateMovement()
     {
         
@@ -340,13 +324,6 @@ public class Player : MonoBehaviour
 
         //Debug.Log("horzInput::: " + horizontalInput);
         float verticalInput = Input.GetAxis("Vertical");        //Set y-input
-
-        //Time.deltaTime = per second in Update frame / meters per second
-        //transform.Translate(Vector3.right * horizontalInput * _speed * Time.deltaTime);                   //**NOT IN USE //Move left and right
-        //transform.Translate(Vector3.up * verticalInput * _speed * Time.deltaTime);                        //**NOT IN USE //Move up and down
-        //Another solution
-        //transform.Translate(new Vector3(horizontalInput, verticalInput, 0) * _speed * Time.deltaTime);    //**NOT IN USE //Move all directions
-        //Another solution (Tutorial)
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
         //*Debug.Log("Ship is moveable!! Direction: " + direction);
 
@@ -357,7 +334,7 @@ public class Player : MonoBehaviour
 
         //Move Horizontal & Verticle with y-clamp
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0f), 0f);   //Clamps the y-cord (Prevent: ship from moving up pass clamp y-cords, up&down)
-        //Same As^
+        
          //Move Horizontal & Verticle with y-boundries
         if (transform.position.y >= 0)
         {
@@ -366,8 +343,7 @@ public class Player : MonoBehaviour
         else if (transform.position.y <= -3.8f)
         {
             transform.position = new Vector3(transform.position.x, -3.8f, 0f);
-        }
-        
+        }        
 
         //Movement screen wrap
         if (transform.position.x > 11.3f)
@@ -380,8 +356,34 @@ public class Player : MonoBehaviour
         }
     }
 
- 
-    //SHOOT
+    //ANIMATION MOVEMENT: TURN LEFT
+    public void TurnLeft(float turnAmt)
+    {
+        //Set sprite img to turnDegree index
+        int turnDegree = -(int)Mathf.Floor(turnAmt * 10f);
+        if (turnDegree >= _spr_ShipTurnLeft.Length) { turnDegree = _spr_ShipTurnLeft.Length - 1; }
+        //Debug.Log("TurnDegree = " + turnDegree + "LeftLength" + (_spr_ShipTurnLeft.Length-1));
+        _spr_shipTurn = _spr_ShipTurnLeft[turnDegree];
+    }
+
+    //ANIMATION MOVEMENT: TURN RIGHT
+    public void TurnRight(float turnAmt)
+    {
+        //Set sprite img to turnDegree index
+        int turnDegree = (int)Mathf.Floor(turnAmt * 10f);
+        if (turnDegree >= _spr_ShipTurnRight.Length) { turnDegree = _spr_ShipTurnRight.Length - 1; }
+        //Debug.Log("TurnDegree = " + turnDegree + "RightLength" + (_spr_ShipTurnRight.Length-1));
+        _spr_shipTurn = _spr_ShipTurnRight[turnDegree];
+    }
+
+    //ANIMATION MOVEMENT: NO TURN
+    public void TurnNone()
+    {
+        //
+        //Debug.Log("Ship Not Turning!!!!!!");
+    }
+    //MOVEMENT=======================================================MOVEMENT=END================================
+    //SHOOT======================================================================================================
     void FireLaser()
     {
         _canFire = Time.time + _fireRate;           //Set new time for fire rate
@@ -391,32 +393,35 @@ public class Player : MonoBehaviour
         //Shoot triple-shot if active, otherwise shoot default laser
         if (_isTripleShotActive)    
         {
-            Debug.Log("Triple Laser Shot by Player");
+            //Debug.Log("Triple Laser Shot by Player");
             Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
             _ammoLaser--;
             //play laser audio clip
+            _audioSource.clip = _sfxLaser;
             _audioSource.Play();
         }
         else if (_isSpaceMineActive == true)
         {
             //Spawn Space Mine
-            Debug.Log("Space Mine Deployed by Player");
+            //Debug.Log("Space Mine Deployed by Player");
             if (_mineSupply > 0)
             {
                 var _spaceMine = Instantiate(_mineFirePrefab, transform.position, Quaternion.identity);
                 _mineSupply--;
+                _audioSource.clip = _sfxMine;
+                _audioSource.Play();
                 //change audio clip, play audio clip
             }
-
         }
         else
         {
-            Debug.Log("Laser Shot by Player");
+            //Debug.Log("Laser Shot by Player");
             if (_ammoLaser > 0 && _fireRate > 0.0f)
             {
                 Instantiate(_laserPrefab, transform.position + new Vector3(0f, 1.0f, 0f), Quaternion.identity);
                 _ammoLaser--;
                 //play laser audio clip
+                _audioSource.clip = _sfxLaser;
                 _audioSource.Play();
             }
             
@@ -442,7 +447,7 @@ public class Player : MonoBehaviour
             _isReloadingAmmo = true;
             _fireRate = 0.0f;
             _ammoLaser++;
-            Debug.Log("RELOADING AMMO (" + _ammoLaser + ")");
+            //Debug.Log("RELOADING AMMO (" + _ammoLaser + ")");
             yield return new WaitForSeconds(30.75f);
         }
         else
@@ -476,30 +481,19 @@ public class Player : MonoBehaviour
             }
             else if (_shieldEnergy > 1)
             {
-                _shieldEnergy--;
-                UpdateShieldColor();
-                return;
+                _shieldEnergy--;                        //Damage shield
+                UpdateShieldColor();                    //Update shield loss color
+                return;                                 //EXIT Damage()
             }
         }
-
+        //DAMAGE
         _lives -= 1;                                //If no shield, then subtract a life
 
-        /*
-        //Controlled Engines
-        if (_lives == 2)
-        {
-            _leftEngine.SetActive(true);            //**NOT IN USE //Set left engine active on lives(2)
-        }
-        else if (_lives == 1)
-        {
-            _rightEngine.SetActive(true);           //**NOT IN USE //Set right engine active on lives(1)
-        }
-        */
         //Random Engines
         if (_lives == 2)                            //If player is damaged...
         {
             int random = Random.Range(0, 2);        //Set random engine (0 or 1) #Always -1 max for int
-            Debug.Log("Random Engine: " + random);  
+           // Debug.Log("Random Engine: " + random);  
             _bothEngines[random].SetActive(true);   //Set chosen engine active
         }
         else if (_lives == 1)                       //If lives(1) on damage...
@@ -526,6 +520,15 @@ public class Player : MonoBehaviour
         }
     }
 
+    //POWERUP: AMMO
+    public void AmmoPowerUp()
+    {
+        _ammoLaserMax++;
+        _ammoLaser = _ammoLaser + (_ammoLaserMax - _ammoLaser);    //Get and Add differnce to fill ammo to max
+        //Debug.Log("Max Ammo is " + _ammoLaserMax);
+    }
+
+    //POWERUP: HEALTH
     public void HealthPowerUp()
     {
         if (_lives < 3)
@@ -534,7 +537,7 @@ public class Player : MonoBehaviour
             _bothEngines[0].SetActive(false);
             _bothEngines[1].SetActive(false);
             _uiManager.UpdateLives(_lives);
-            Debug.Log("Health!!! Ship Repaired");
+            //Debug.Log("Health!!! Ship Repaired");
         }
     }
 
@@ -555,17 +558,18 @@ public class Player : MonoBehaviour
        
     }
 
+    //POWERUP: SPACE MINE ACTIVE
     public void SpaceMineActive()
     {
         _mineSupply = _mineAmmoMax;            //Add max mines to supply 
-        Debug.Log("Mine Supply is " + _mineSupply + " and Max Mines is " + _mineAmmoMax);
+        //Debug.Log("Mine Supply is " + _mineSupply + " and Max Mines is " + _mineAmmoMax);
 
         _isSpaceMineActive = true;             //Set active
         StopCoroutine(SpaceMineCoolDown());
         StartCoroutine(SpaceMineCoolDown());   //Begin cooldown
     }
 
-    //POWERUP: SPACE MINE
+    //COOLDOWN: SPACE MINE 
     IEnumerator SpaceMineCoolDown()
     {
         
@@ -595,7 +599,8 @@ public class Player : MonoBehaviour
         _isSpeedBoostActive = false;            //Set not active //Runs after yield time
 
     }
-
+    //SHOOT==================================================================SHOOT=END==========================
+    //POWERUPS==================================================================================================
     //POWERUP SHIELD
     //CB: <Powerup> @OnTriggerEnter2D
     public void ShieldPowerupActive()
@@ -609,16 +614,7 @@ public class Player : MonoBehaviour
         //start coroutine
     }
 
-    //COOLDOWN: SHIELD
-    //**NOT IN USE (changed with tutorial)
-    //Shield deactivates on Damage()
-    /*
-    IEnumerator ShieldPowerupCoolDown()
-    {
-        yield return new WaitForSeconds(_coolDownShieldPowerup);
-        _isShieldActive = false;
-    }
-    */
+    //POWERUP: SHIELD COLOR
     void UpdateShieldColor()
     {
         switch (_shieldEnergy)
@@ -631,23 +627,13 @@ public class Player : MonoBehaviour
             default: _shieldVisualsPrefab.GetComponent<SpriteRenderer>().color = Color.white; break; 
         }
     }
-
-    public void AmmoPowerUp()
-    {
-        _ammoLaserMax++;
-        Debug.Log("Max Ammo is " + _ammoLaserMax);
-    }
-
-
-
+    //POWERUPS================================================================POWERUPS=END======================
+    //SCORE=====================================================================================================
     //SCORE: ADD POINTS(int ~points set by call)
     public void AddScore(int points)
     {
         _score += points;                   //SET score
         _uiManager.UpdateScore(_score);     //Update UI score display
     }
-
- 
-    //method to add 10 to score
-    //communicate with UI to update score
+    //SCORE=====================================================================SCORE= END======================
 }

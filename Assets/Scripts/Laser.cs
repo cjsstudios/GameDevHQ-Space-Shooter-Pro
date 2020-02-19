@@ -20,7 +20,7 @@ public class Laser : MonoBehaviour
         _player = GameObject.Find("Player").GetComponent<Player>();
         if (_player == null) { Debug.LogError("_player is NULL"); }
         _shakeCamera = GameObject.Find("Main Camera").GetComponent<CameraShake>();
-        Debug.Log("Created laser named: " +  gameObject.tag);
+       // Debug.Log("Created laser named: " +  gameObject.tag);
     }
 
     //On Collision
@@ -29,7 +29,7 @@ public class Laser : MonoBehaviour
     {
         if (other.tag == "Player" && gameObject.tag == "LaserEnemy")    //If other is Player & this laser is enemy laser...
         {
-            Debug.Log("Enemy laser hit player!");
+           //Debug.Log("Enemy laser hit player!");
             _player.Damage();                                           //Damage Player
             _shakeCamera.ShakeCamera();
  
