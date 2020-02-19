@@ -98,20 +98,21 @@ public class UIManager : MonoBehaviour
         } 
     }
     
-    //Update UI: FUEL
+    //UI SLIDERS REFRESH: FUEL
     public void Update_ThrusterFuel(float fuel)
     {
         _thrusterFuel_UI.value = fuel;
        
     }
 
-    //Update UI: AMMO
+    //UI SLIDERS REFRESH: AMMO
     public void Update_AmmoCount(int ammo)
     {
         _ammoCount_UI.value = ammo;
         
     }
 
+    //UI TEXT REFRESH: AMMO, FUEL, MINES
     public void UpdateStatusText(int ammo, float fuel, int mines, int ammoMax, bool isRefuel, bool isReload)
     {
         _currentMines = mines;
@@ -126,11 +127,12 @@ public class UIManager : MonoBehaviour
         //_textStatus_UI.color = new Color(Random.value, Random.value, Random.value);
     }
 
+    //UPDATE
     private void Update()
     {
+        //TEXT FIELD UPDATES
         _textStatusFuel_UI.text = _statusTextFuel;
         _textStatusAmmo_UI.text = _statusTextAmmo;
-        _textStatusMines_UI.text = _statusTextMines;
-        
+        _textStatusMines_UI.text = _statusTextMines;        
     }
 }

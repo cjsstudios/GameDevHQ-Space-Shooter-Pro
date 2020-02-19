@@ -20,7 +20,7 @@ public class SoundFX : MonoBehaviour
     {
         if (_audioClipExplosion != null && _audioSourceExplosion != null)   //If <AudioClip> AND <AudioSource> not null
         {
-            Debug.Log("Playing Explosion");
+            //Debug.Log("Playing Explosion");
             _audioSourceExplosion.Play();       //Play soundfX
         }
     }

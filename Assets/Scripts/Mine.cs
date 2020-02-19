@@ -20,13 +20,13 @@ public class Mine : MonoBehaviour
         int rndNum = Random.Range(0, 3);
         switch (rndNum)
         {
-            case 0: mineLaunchDir = Vector3.up; Debug.Log("UP mineLaunchDir Chosen");
+            case 0: mineLaunchDir = Vector3.up; //Debug.Log("UP mineLaunchDir Chosen");
                 break;
-            case 1: mineLaunchDir = new Vector3(-0.15f, 0.5f, 0f); Debug.Log("LEFT mineLaunchDir Chosen");
+            case 1: mineLaunchDir = new Vector3(-0.15f, 0.5f, 0f); //Debug.Log("LEFT mineLaunchDir Chosen");
                 break;
-            case 2: mineLaunchDir = new Vector3(0.15f, 0.5f, 0f); Debug.Log("RIGHT mineLaunchDir Chosen");
+            case 2: mineLaunchDir = new Vector3(0.15f, 0.5f, 0f);// Debug.Log("RIGHT mineLaunchDir Chosen");
                 break;
-            default: mineLaunchDir = Vector3.up; Debug.Log("Default mineLaunchDir Chosen");
+            default: mineLaunchDir = Vector3.up; //Debug.Log("Default mineLaunchDir Chosen");
                 break;
         }        
     }
@@ -44,6 +44,7 @@ public class Mine : MonoBehaviour
                 Destroy(this.transform.parent.gameObject);              //Destroy parent
             }
             _minesInSpace++;                                            //Add number of Space Mines that didn't detonate in player's view *used as an object pool*
+            Debug.Log("Active Mines in Space: " + _minesInSpace);
             Destroy(this.gameObject);                                   //Destroy the mine offscreen
         }
     }

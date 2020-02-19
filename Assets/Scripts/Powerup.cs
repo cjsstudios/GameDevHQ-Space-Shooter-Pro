@@ -53,7 +53,7 @@ public class Powerup : MonoBehaviour
         if (other.tag == "Player")                                              //if collision with player...
         {
             //communicate player
-            Debug.Log("Powerup Hit Player!");
+            //Debug.Log("Powerup Hit Player!");
             Player player = other.transform.GetComponent<Player>();             //Set <Player> ref to call <Player>()
             AudioSource.PlayClipAtPoint(_audioClipPowerup, transform.position); //Play sound at time of collision, at position
             if (player != null)                                                 //Player null-check
@@ -61,32 +61,30 @@ public class Powerup : MonoBehaviour
                 switch (_powerupID)                                             //Use powerupID to determine which powerup to call
                 {
                     case 0:
-                        Debug.Log("Triple Shot Collected");
+                        //Debug.Log("Triple Shot Collected");
                         player.TripleShotActive();
                         break;
 
                     case 1:
-                        Debug.Log("Speed Collected");
-                        player.SpeedBoostActive();
-                        //call speed boost active
+                        //Debug.Log("Speed Collected");
+                        player.SpeedBoostActive();                        
                         break;
 
                     case 2:
-                        Debug.Log("Shield Collected");
+                        //Debug.Log("Shield Collected");
                         player.ShieldPowerupActive();
-                        //call shield active
                         break;
 
                     case 3:
-                        Debug.Log("Ammo Laser Collected");
+                        //Debug.Log("Ammo Laser Collected");
                         player.AmmoPowerUp();
                         break;
 
-                    case 4: Debug.Log("Health Collected");
+                    case 4: //Debug.Log("Health Collected");
                         player.HealthPowerUp();
                         break;
 
-                    case 5: Debug.Log("Space Mine Collected");
+                    case 5: //Debug.Log("Space Mine Collected");
                         player.SpaceMineActive();
                         break;
 
