@@ -123,6 +123,13 @@ public class Player : MonoBehaviour
 
     private Animator _animPlayer;
 
+    [SerializeField]
+    AudioClip _sfxLaser;
+    [SerializeField]
+    AudioClip _sfxMine;
+    [SerializeField]
+    AudioClip _sfxNoAmmo;
+
     //START
     //Move player to start pos
     //Get:Set <SpawnManger> <UIManager> <AudioSource> <SoundFX>
@@ -202,13 +209,17 @@ public class Player : MonoBehaviour
         {
             if (Time.time > _canFire)
             {
-                //Debug.Log("Shoot Time: " + Time.time);
-                //Debug.Log("***Is GameTime " + Time.time + " > " + _canFire + " CanFire Time");
-                FireLaser();
+                if (_isReloadingAmmo)   //Play sound if player attempts to shoot with no ammo
+                {
+                    _audioSource.clip = _sfxNoAmmo;
+                    _audioSource.Play();
+                }
+                else { FireLaser(); }
             }
-            else {
-                //Debug.Log("TOO EARLY TO SHOOT"); 
-            }   //Player shoot attempt too early
+            else {                      //Player shoot attempt too early
+                _audioSource.clip = _sfxNoAmmo;
+                _audioSource.Play();
+            }   
         }
 
         //SHOOT SPECIAL WEAPON I
@@ -271,7 +282,7 @@ public class Player : MonoBehaviour
         //UPDATE UI: Fuel
         _uiManager.Update_ThrusterFuel(_thrusterFuel);
 
-        _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply);
+        _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply, _ammoLaserMax, _isRefueling, _isReloadingAmmo);
     }
 
     //Normal Speed and Thruster Color
@@ -395,6 +406,7 @@ public class Player : MonoBehaviour
             Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
             _ammoLaser--;
             //play laser audio clip
+            _audioSource.clip = _sfxLaser;
             _audioSource.Play();
         }
         else if (_isSpaceMineActive == true)
@@ -405,9 +417,10 @@ public class Player : MonoBehaviour
             {
                 var _spaceMine = Instantiate(_mineFirePrefab, transform.position, Quaternion.identity);
                 _mineSupply--;
+                _audioSource.clip = _sfxMine;
+                _audioSource.Play();
                 //change audio clip, play audio clip
             }
-
         }
         else
         {
@@ -417,6 +430,7 @@ public class Player : MonoBehaviour
                 Instantiate(_laserPrefab, transform.position + new Vector3(0f, 1.0f, 0f), Quaternion.identity);
                 _ammoLaser--;
                 //play laser audio clip
+                _audioSource.clip = _sfxLaser;
                 _audioSource.Play();
             }
             
