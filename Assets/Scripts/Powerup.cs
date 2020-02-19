@@ -4,6 +4,24 @@ using UnityEngine;
 
 public class Powerup : MonoBehaviour
 {
+    /// <summary>
+    /// To create a new powerup:
+    /// 1)Create prefab, pick a powerup add to scene then unpack 
+    /// 2)Select obj and change name
+    /// 3)Change (Powerup ID) in inspector to powerups total count -1)
+    /// 4)Assign sprite, add last one twice *doesn't show last img*
+    /// 5)Change (Controller) in <Animator> component to 'None'
+    /// 6)Create Animation, Save, DragNDrop images
+    /// 7)Create a prefab with obj with default transform settings
+    /// 8)Remove instance from hierarchy
+    /// 9)
+    /// 10)Add to <SpawnManager> Array @inspector, Drag prefab in Powerups-Array
+    /// 11)Create Active & Cooldown methods for powerup in <Player></Player>
+    /// 12)Create prefab ref GameObject var in <Player> then add to component
+    /// 13)Add prefab name to <Powerup> this script @OnTriggerEnter2D->switch [case = powerup count - 1]
+    /// 14)Add player.PowerUpActive @ switch call in <Powerup> @switch to call active when picked up
+    /// 15)Add to <Player> on [Player] dragNdrop prefab
+    /// </summary>
     [SerializeField]
     private float _speedTripleShot = 3;     //Movement Speed (Applies to all powerups)
     //ID for Powerups
@@ -66,6 +84,10 @@ public class Powerup : MonoBehaviour
 
                     case 4: Debug.Log("Health Collected");
                         player.HealthPowerUp();
+                        break;
+
+                    case 5: Debug.Log("Space Mine Collected");
+                        player.SpaceMineActive();
                         break;
 
                     default:

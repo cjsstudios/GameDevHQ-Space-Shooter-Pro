@@ -7,7 +7,7 @@ public class Mine : MonoBehaviour
 
     private SoundFX _explosionSoundFX;  //<SoundFX> ref
     private static int _minesInSpace;   //Count of mines that drifted off screen
-    public Vector3 mineLaunchDir;
+    public Vector3 mineLaunchDir;       //Directions available for random deployment
 
     // Start is called before the first frame update
     void Start()
@@ -15,6 +15,7 @@ public class Mine : MonoBehaviour
         Debug.Log("SPAWNING MINE");
         _explosionSoundFX = GameObject.Find("Explosion_SFX").GetComponent<SoundFX>();               //<SoundFX> ref
         if (_explosionSoundFX == null) { Debug.LogError("_explosionSoundFX is NULL"); }             //<SoundFX> null-check
+        //Random Mine Deploy Direction
         mineLaunchDir = new Vector3();
         int rndNum = Random.Range(0, 3);
         switch (rndNum)
@@ -40,10 +41,10 @@ public class Mine : MonoBehaviour
             //destroy parent
             if (transform.parent != null)
             {
-                Destroy(this.transform.parent.gameObject);
+                Destroy(this.transform.parent.gameObject);              //Destroy parent
             }
-            _minesInSpace++;
-            Destroy(this.gameObject);
+            _minesInSpace++;                                            //Add number of Space Mines that didn't detonate in player's view *used as an object pool*
+            Destroy(this.gameObject);                                   //Destroy the mine offscreen
         }
     }
  

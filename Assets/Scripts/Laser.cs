@@ -11,6 +11,7 @@ public class Laser : MonoBehaviour
     private float _speedLaser = 8.0f;   //Laser speed @Inspector
 
     Player _player;                     //<Player> ref
+    CameraShake _shakeCamera;
 
     //START
     //Set <Player> ref then null-check
@@ -18,6 +19,7 @@ public class Laser : MonoBehaviour
     {
         _player = GameObject.Find("Player").GetComponent<Player>();
         if (_player == null) { Debug.LogError("_player is NULL"); }
+        _shakeCamera = GameObject.Find("Main Camera").GetComponent<CameraShake>();
         Debug.Log("Created laser named: " +  gameObject.tag);
     }
 
@@ -29,7 +31,8 @@ public class Laser : MonoBehaviour
         {
             Debug.Log("Enemy laser hit player!");
             _player.Damage();                                           //Damage Player
- //ToDo: Add Camera Shake
+            _shakeCamera.ShakeCamera();
+ 
             if (this.transform.parent != null)                          //If enemy laser has parent...
             {
                 Destroy(this.transform.parent.gameObject);              //Destroy parent

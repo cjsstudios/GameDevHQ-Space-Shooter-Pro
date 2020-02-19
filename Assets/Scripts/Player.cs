@@ -66,6 +66,16 @@ public class Player : MonoBehaviour
     [SerializeField]
     private bool _isReloadingAmmo;
 
+    //Weapons - Space Mine
+    [SerializeField]
+    private bool _isSpaceMineActive = false;            //Set active toggle
+    [SerializeField]
+    private GameObject _spaceMinePrefab;                //Set @inspector
+    [SerializeField]
+    private int _mineSupply = 0;                            //mine supply count
+    [SerializeField]
+    private int _mineAmmoMax = 9;                       //Set max mine ammo
+
     //Weapons - Triple Shot
     [SerializeField]
     private bool _isTripleShotActive = false;           //3shot active toggle
@@ -184,8 +194,6 @@ public class Player : MonoBehaviour
         {
             Debug.Log("OUT OF AMMO!");
             _isReloadingAmmo = true;
-            //StartCoroutine("AmmoLaser_Reload");
-            //InvokeRepeating("Reload_AmmoLaser", 1.0f, 10.0f);
             InvokeRepeating("Reload_AmmoLaser", 0f, 0.75f);
         }
 
@@ -262,6 +270,8 @@ public class Player : MonoBehaviour
 
         //UPDATE UI: Fuel
         _uiManager.Update_ThrusterFuel(_thrusterFuel);
+
+        _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply);
     }
 
     //Normal Speed and Thruster Color
@@ -375,13 +385,9 @@ public class Player : MonoBehaviour
     void FireLaser()
     {
         _canFire = Time.time + _fireRate;           //Set new time for fire rate
-                                                    //Debug.Log("Can Fire Time: " + _canFire);
-                                                    //Debug.Log("MathCheck: FireRate = (" + _fireRate + ") <> GameTime(inSec) = " + Time.time + " <> Is FireRate + Time = " + _canFire);
-         //Spawn Space Mine
-        var _spaceMine = Instantiate(_mineFirePrefab, transform.position, Quaternion.identity);
-        //_spaceMine.transform.Translate(Vector3.up *5* Time.deltaTime);
-        //Set five second timer for secondary fire power
-        //Revert back to laser
+        //Debug.Log("Can Fire Time: " + _canFire);
+        //Debug.Log("MathCheck: FireRate = (" + _fireRate + ") <> GameTime(inSec) = " + Time.time + " <> Is FireRate + Time = " + _canFire);
+        
         //Shoot triple-shot if active, otherwise shoot default laser
         if (_isTripleShotActive)    
         {
@@ -390,6 +396,18 @@ public class Player : MonoBehaviour
             _ammoLaser--;
             //play laser audio clip
             _audioSource.Play();
+        }
+        else if (_isSpaceMineActive == true)
+        {
+            //Spawn Space Mine
+            Debug.Log("Space Mine Deployed by Player");
+            if (_mineSupply > 0)
+            {
+                var _spaceMine = Instantiate(_mineFirePrefab, transform.position, Quaternion.identity);
+                _mineSupply--;
+                //change audio clip, play audio clip
+            }
+
         }
         else
         {
@@ -407,24 +425,16 @@ public class Player : MonoBehaviour
                 //InvokeRepeating("AmmoLaser_Reload", 1.0f, 1.0f);
                 Debug.Log("RELOADING AMMO PLEASE WAIT!!!");
             }
-            //RELOAD AMMO
-            /*
-            if (_ammoLaser == 0 || _fireRate == 0.0f)
-            {
-                Debug.Log("OUT OF AMMO!");
-                StartCoroutine("AmmoLaser_Reload", 1.0f);
-            }            
-            */
         }
-
     }
 
+    //LASER AMMO RELOAD
     public void Reload_AmmoLaser()
     {
         StartCoroutine("AmmoLaser_Reload");
     }
 
-    //RELOAD LASER AMMO
+    //RELOAD LASER AMMO COROUTINE
     IEnumerator AmmoLaser_Reload()
     {
         if (_ammoLaser < _ammoLaserMax)
@@ -543,6 +553,25 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(_coolDownTimeTripleShot);
         _isTripleShotActive = false;            //Set inactive after cooldown timer
        
+    }
+
+    public void SpaceMineActive()
+    {
+        _mineSupply = _mineAmmoMax;            //Add max mines to supply 
+        Debug.Log("Mine Supply is " + _mineSupply + " and Max Mines is " + _mineAmmoMax);
+
+        _isSpaceMineActive = true;             //Set active
+        StopCoroutine(SpaceMineCoolDown());
+        StartCoroutine(SpaceMineCoolDown());   //Begin cooldown
+    }
+
+    //POWERUP: SPACE MINE
+    IEnumerator SpaceMineCoolDown()
+    {
+        
+        yield return new WaitForSeconds(5.0f);
+        _mineSupply = 0;                        //Zero Mines
+        _isSpaceMineActive = false;             //Set inactive after cooldown timer
     }
 
     //POWERUP: SPEED BOOST ACTIVE
