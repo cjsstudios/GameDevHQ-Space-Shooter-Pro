@@ -8,6 +8,7 @@ public class Mine : MonoBehaviour
     private SoundFX _explosionSoundFX;  //<SoundFX> ref
     private static int _minesInSpace;   //Count of mines that drifted off screen
     public Vector3 mineLaunchDir;       //Directions available for random deployment
+    private bool _didDetonate = true;          //Did mine explode?
 
     // Start is called before the first frame update
     void Start()
@@ -44,14 +45,15 @@ public class Mine : MonoBehaviour
                 Destroy(this.transform.parent.gameObject);              //Destroy parent
             }
             _minesInSpace++;                                            //Add number of Space Mines that didn't detonate in player's view *used as an object pool*
+            _didDetonate = false;
             Debug.Log("Active Mines in Space: " + _minesInSpace);
             Destroy(this.gameObject);                                   //Destroy the mine offscreen
         }
     }
- 
+
     private void OnDestroy()
     {
-        _explosionSoundFX.PlayExplosionSFX();           //Play soundFx
+        if (_didDetonate) { _explosionSoundFX.PlayExplosionSFX(); }          //Play soundFx 
         Destroy(GetComponent<CircleCollider2D>());      //Destroy collider on mine
         Destroy(this.gameObject, 2.8f);                 //Destroy self  
     }
