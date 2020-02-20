@@ -51,7 +51,7 @@ public class SpawnManager : MonoBehaviour
         while (_stopSpawning == false)
         {
             Vector3 posToSpawn = new Vector3(Random.Range(-9.0f, 9.0f), 7, 0);          //Spawn powerup random pos off screen-top
-            int randomPowerUp = 100;                                                    //Set random powerup to 100 as default **Modified to Spawn%
+            int randomPowerUp = 0;                                                    //Set random powerup to 100 as default **Modified to Spawn%
             //Powerup Spawn Frequency
             int rnd = Random.Range(1, 101);
             if (rnd < 100) { randomPowerUp = 1; }       //Speed  25% Spawn Chance
