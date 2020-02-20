@@ -189,34 +189,19 @@ public class Player : MonoBehaviour
         CalculateMovement();
 
         //RELOAD AMMO
-        if ((_ammoLaser == 0 || _fireRate == 0.0f ) && !_isReloadingAmmo)
-        {
-            Debug.Log("OUT OF AMMO!");
-            _isReloadingAmmo = true;
-            InvokeRepeating("Reload_AmmoLaser", 0f, 0.75f);
-        }
-        //INPUT==============================================================================================================
+        LaserAmmoReload();
+
+        //INPUT: SPACE BAR DOWN
         //SHOOT LASER
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (Time.time > _canFire)
-            {
-                if (_isReloadingAmmo)   //Play sound if player attempts to shoot with no ammo
-                {
-                    _audioSource.clip = _sfxNoAmmo;
-                    _audioSource.Play();
-                }
-                
-            }
-            else {                      //Player shoot attempt too early
-                _audioSource.clip = _sfxNoAmmo;
-                _audioSource.Play();
-            }
+            //SFX No Shoot: check on canShoot and isReloadingAmmo
+            SFX_LaserReloadAmmoCheck();
+            //Shoot Laser or Active PowerUp Weapon
             FireLaser();
-
         }
-        
-        
+
+        //INPUT: LEFT CONTROL DOWN
         //SHOOT SPECIAL WEAPON I
         if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl) || Input.GetMouseButtonDown(1))
         {
@@ -224,38 +209,23 @@ public class Player : MonoBehaviour
             Debug.Log("Aquire a Special Weapon");
         }
 
+        //INPUT: LEFT SHIFT ANY PRESSED STATE
         //THRUSTER ACTIVE
-            //Colorize thrusters on button press
-            //On key press add thruster speed multiplier
+        //Colorize thrusters on button press
+        //On key press add thruster speed multiplier
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetButton("Fire3"))
         {
             if (!_isRefueling)
             {
-                //Burn Thrusters
-                //Overwrite vars if no thruster fuel left
-                if (_thrusterFuel > 0 && _isRefueling == false)  //Has Fuel & Not Refueling
-                {
-                    //Thruster Activated
-                    GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
-                    //Debug.Log("Thruster");
-                    _shiftSpeedX = 1.75f;       //Set thruster speed modifier
-                    BurnThrusters();                    //Decrease fuel
-                    //Thruster Actived plus Speed Boost
-                    if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
-                }
-                else
-                {
-                    _isRefueling = true;                        //Once true then loop is false
-                    Debug.Log("OUT OF FUEL!!! REFUELING...");
-                    ThrusterDeactivated();
-                }
+                ThrusterActivated();
             }
         }
 
+        //INPUT: LEFT SHIFT UP
         //THRUSTER + SPEED BOOST TOGGLE
-            //to default color on button Release
-            //Always true if these buttons not pushed
-            //No thruster activated (normal or speed boost active only)
+        //to default color on button Release
+        //Always true if these buttons not pushed
+        //No thruster activated (normal or speed boost active only)
         if (Input.GetKeyUp(KeyCode.LeftShift) && Input.GetButtonUp("Fire3"))
         {
             //Normal Speed and Thruster Color
@@ -264,7 +234,7 @@ public class Player : MonoBehaviour
             //Speed Boost active only, boost thruster color
             if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorSpeedBoost_On; Debug.Log("Speed Boost Only"); }
         }
-        //==========================================================INPUT==END====================================================
+
         //SYSTEMS CHECK AND UI REFRESH============================================================================================
         //Refueling        
         Refueling_ShipSystemCheck();
@@ -277,9 +247,65 @@ public class Player : MonoBehaviour
 
         _uiManager.UpdateStatusText(_ammoLaser, _thrusterFuel, _mineSupply, _ammoLaserMax, _isRefueling, _isReloadingAmmo);
         //SYSTEMS END
-    }    
+    }
     //SYSTEMS CHECK AND UI REFRESH===========================================SYTEMS END==================================
     //UPDATE=============================================UPDATE=END======================================================
+
+    //AMMO: RELOAD LASER AMMO============================================================================================
+    public void LaserAmmoReload()
+    {
+        if ((_ammoLaser == 0 || _fireRate == 0.0f) && !_isReloadingAmmo)
+        {
+            Debug.Log("OUT OF AMMO!");
+            _isReloadingAmmo = true;
+            InvokeRepeating("Reload_AmmoLaser", 0f, 0.75f);
+        }
+    }
+
+    //SFX: isReloadingAmmo CHECK Early Shoot or Ammo Reloading Play soundFX==============================================
+    public void SFX_LaserReloadAmmoCheck()
+    {
+        if (Time.time > _canFire)
+        {
+            if (_isReloadingAmmo)   //Play sound if player attempts to shoot with no ammo
+            {
+                _audioSource.clip = _sfxNoAmmo;
+                _audioSource.Play();
+            }
+
+        }
+        else
+        {                      //Player shoot attempt too early
+            _audioSource.clip = _sfxNoAmmo;
+            _audioSource.Play();
+        }
+    }
+
+    //THRUSTER: Activated
+    public void ThrusterActivated()
+    {
+        //Burn Thrusters
+        //Overwrite vars if no thruster fuel left
+        if (_thrusterFuel > 0 && _isRefueling == false)  //Has Fuel & Not Refueling
+        {
+            //Thruster Activated
+            GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorThruster_On;
+            //Debug.Log("Thruster");
+            _shiftSpeedX = 1.75f;       //Set thruster speed modifier
+            BurnThrusters();                    //Decrease fuel
+                                                //Thruster Actived plus Speed Boost
+            if (_isSpeedBoostActive) { GameObject.Find("Thruster").GetComponent<SpriteRenderer>().color = _colorBoostAndThruster_On; Debug.Log("Thruster + Boost"); }
+        }
+        else
+        {
+            _isRefueling = true;                        //Once true then loop is false
+            Debug.Log("OUT OF FUEL!!! REFUELING...");
+            ThrusterDeactivated();
+        }
+    }
+    //UPDATE=============================================UPDATE=END======================================================
+
+
     //Normal Speed and Thruster Color
     public void ThrusterDeactivated()
     {        
